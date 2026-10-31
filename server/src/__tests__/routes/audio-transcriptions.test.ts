@@ -272,4 +272,14 @@ describe('POST /v1/audio/transcriptions', () => {
     expect(raw).toBe(vtt);
     expect(headers.get('content-type')).toContain('text/vtt');
   });
+
+  it('400 when uploaded file fails audio magic-byte signature check', async () => {
+    addKey('groq');
+    const { status, body } = await postTranscription(app, {
+      file: { bytes: Buffer.from('NOT_AN_AUDIO_FILE_JUST_TEXT'), name: 'bad.wav' },
+      fields: { model: 'whisper-1' },
+    });
+    expect(status).toBe(400);
+    expect(body.error.code).toBe('unsupported_audio_format');
+  });
 });

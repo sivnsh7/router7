@@ -48,15 +48,15 @@ dashboard (or the tray popover in the desktop app).
 | `--model ID` | Pin a specific model instead of the catalog default |
 | `--dry-run` | Print the diff and write nothing |
 
-`FREELLMAPI_URL` and `FREELLMAPI_API_KEY` work in place of `--url` / `--api-key`.
+`ROUTER7_URL` and `ROUTER7_API_KEY` (or legacy `FREELLMAPI_URL` / `FREELLMAPI_API_KEY`) work in place of `--url` / `--api-key`.
 
 ## Provider keys
 
 The `keys` commands use a **dashboard session token**. Set
-`FREELLMAPI_DASHBOARD_TOKEN`, or pass `--token TOKEN` to override it. This is the
-session returned by dashboard sign-in (stored in the signed-in browser's local
+`ROUTER7_DASHBOARD_TOKEN` (or `FREELLMAPI_DASHBOARD_TOKEN`), or pass `--token TOKEN` to override it. This is the
+session returned by dashboard sign-in or registration (stored in the signed-in browser's local
 storage as `router7_dashboard_token`). The unified `--api-key` /
-`FREELLMAPI_API_KEY` used by coding agents cannot authenticate these commands.
+`ROUTER7_API_KEY` used by coding agents cannot authenticate these administrative commands.
 The CLI does not log in or persist the dashboard token.
 
 ```bash

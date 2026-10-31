@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { useI18n } from '@/i18n'
 import { logout } from '@/lib/api'
 import { NAV_GROUPS, type NavItem } from './navigation-config'
+import { BrandLockup } from './brand-lockup'
 
 interface MobileNavigationSheetProps {
   open: boolean
@@ -83,10 +84,7 @@ export function MobileNavigationSheet({ open, onClose }: MobileNavigationSheetPr
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="flex items-center justify-between p-4 border-b-[2.5px] border-ink bg-paper-3">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold tracking-tight text-base">Router7</span>
-          <span className="font-mono text-xs text-ink-mute">SIVNSH7 · AI Routing</span>
-        </div>
+        <BrandLockup />
         <button
           type="button"
           onClick={onClose}
@@ -120,7 +118,7 @@ export function MobileNavigationSheet({ open, onClose }: MobileNavigationSheetPr
                       )}
                       aria-current={isItemActive(item.to) ? 'page' : undefined}
                     >
-                      <span className="flex size-5 shrink-0 items-center justify-center"><ItemIcon className="h-5 w-5" aria-hidden="true" /></span>
+                      <ItemIcon className="size-5 shrink-0" aria-hidden="true" />
                       <span>{t(item.labelKey)}</span>
                     </button>
                     {item.children && isParentActive && (

@@ -16,10 +16,14 @@ import {
   Video,
   Music,
   Zap,
-  Shield,
+  KeyRound,
   Plug,
   Activity,
   Terminal,
+  LayoutGrid,
+  Link2,
+  Gauge,
+  User,
 } from 'lucide-react'
 
 // ── Router7 Navigation ──────────────────────────────────────────────────────
@@ -33,12 +37,7 @@ export const NAV_GROUPS: { labelKey: string; items: NavItem[]; icon?: ReactNode 
   // ── WORKSPACES ──
   {
     labelKey: 'sidebar.workspaces',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </svg>
-    ),
+    icon: <LayoutGrid className="size-4" />,
     items: [
       // Model Index — primary model discovery and routing policy workspace
       {
@@ -54,7 +53,7 @@ export const NAV_GROUPS: { labelKey: string; items: NavItem[]; icon?: ReactNode 
           { to: '/models/audio',      labelKey: 'nav.voiceAudio',       icon: Music },
         ],
       },
-      // Request Studio — execute requests and inspect routing results
+      // Request Workbench — execute requests and inspect routing results
       { to: '/playground', labelKey: 'nav.requestStudio', icon: Zap },
     ],
   },
@@ -62,15 +61,11 @@ export const NAV_GROUPS: { labelKey: string; items: NavItem[]; icon?: ReactNode 
   // ── CONNECTIONS ──
   {
     labelKey: 'sidebar.connections',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
+    icon: <Link2 className="size-4" />,
     items: [
-      // Provider Vault — provider credentials, connection health, quota and model coverage
-      { to: '/keys',   labelKey: 'nav.providerVault', icon: Shield },
-      // Integrations — coding agents and client toolchain connections
+      // Provider Registry — provider credentials, connection health, quota and model coverage
+      { to: '/keys',   labelKey: 'nav.providerVault', icon: KeyRound },
+      // Client Adapters — coding agents and client toolchain connections
       { to: '/agents', labelKey: 'nav.integrations',  icon: Plug },
     ],
   },
@@ -78,17 +73,11 @@ export const NAV_GROUPS: { labelKey: string; items: NavItem[]; icon?: ReactNode 
   // ── OPERATIONS ──
   {
     labelKey: 'sidebar.operations',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6"  y1="20" x2="6"  y2="14" />
-      </svg>
-    ),
+    icon: <Gauge className="size-4" />,
     items: [
-      // Routing Telemetry — traffic, route quality, provider performance and failure analysis
+      // Route Observatory — traffic, route quality, provider performance and failure analysis
       { to: '/analytics', labelKey: 'nav.routingTelemetry', icon: Activity },
-      // Runtime Stream — live events/logs and request-level inspection
+      // Execution Stream — live events/logs and request-level inspection
       { to: '/logs',      labelKey: 'nav.runtimeStream',    icon: Terminal },
     ],
   },
@@ -96,12 +85,7 @@ export const NAV_GROUPS: { labelKey: string; items: NavItem[]; icon?: ReactNode 
   // ── SYSTEM (account + settings in TopBar; no nav items here) ──
   {
     labelKey: 'sidebar.account',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    ),
+    icon: <User className="size-4" />,
     items: [],
   },
 ]

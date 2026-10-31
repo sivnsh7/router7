@@ -209,7 +209,7 @@ export function MediaModelsView({ modality }: { modality: 'image' | 'video' | 'a
         title={title}
         description={description}
         divider={false}
-        actions={<ModelsTabs />}
+        tabs={<ModelsTabs />}
       />
 
       <div className="space-y-4">

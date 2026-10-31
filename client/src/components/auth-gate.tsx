@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { isEmail } from '@/lib/validate'
 import { useI18n } from '@/i18n'
 import { toast } from '@/lib/toast'
+import { BrandLockup } from './brand-lockup'
 
 // Matches the server rule (routes/auth.ts zod schema).
 const PASSWORD_MIN = 8
@@ -48,6 +49,7 @@ function Centered({ children }: { children: ReactNode }) {
 
 function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () => void }) {
   const { t } = useI18n()
+  const [currentMode, setCurrentMode] = useState<'setup' | 'login' | 'register'>(mode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [setupCode, setSetupCode] = useState('')
@@ -59,22 +61,21 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
   const [attempted, setAttempted] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
 
-  const isSetup = mode === 'setup'
+  const isSetup = currentMode === 'setup'
+  const isRegister = currentMode === 'register'
+  const isCreatingAccount = isSetup || isRegister
 
-  // Inline field feedback; the server stays authoritative. Only the setup form
+  // Inline field feedback; the server stays authoritative. Only the setup/register form
   // enforces the password minimum client-side (an existing password of any
-  // length must still be able to log in). The same goes for the email shape:
-  // the desktop app's hidden account is `desktop@localhost` (no TLD), which
-  // the login route accepts on purpose (server/src/routes/auth.ts), so a
-  // browser tab must be able to submit it after a password reset (#1250).
+  // length must still be able to log in).
   const emailError = !email.trim()
     ? t('validation.required')
-    : isSetup && !isEmail(email)
+    : isCreatingAccount && !isEmail(email)
       ? t('validation.email')
       : null
   const passwordError = !password
     ? t('validation.required')
-    : isSetup && password.length < PASSWORD_MIN
+    : isCreatingAccount && password.length < PASSWORD_MIN
       ? t('validation.passwordMin', { min: PASSWORD_MIN })
       : null
 
@@ -94,7 +95,8 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
       // Only the setup flow carries a code, and only once the server has asked
       // for it. The server ignores it for local (loopback) setup.
       if (isSetup && setupCode) payload.setupCode = setupCode.trim()
-      const res = await apiFetch<{ token: string }>(isSetup ? '/api/auth/setup' : '/api/auth/login', {
+      const endpoint = isSetup ? '/api/auth/setup' : isRegister ? '/api/auth/register' : '/api/auth/login'
+      const res = await apiFetch<{ token: string }>(endpoint, {
         method: 'POST',
         body: JSON.stringify(payload),
       })
@@ -118,14 +120,39 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
 
   return (
     <Centered>
-      <div className="mb-6 flex items-center gap-2">
-        <span className="inline-block size-2 rounded-full bg-foreground" />
-        <span className="font-semibold tracking-tight text-sm">Router7</span>
+      <div className="mb-6 flex items-center justify-center">
+        <BrandLockup />
       </div>
-      <div className="rounded-3xl border bg-card p-6">
-        <h1 className="text-lg font-semibold tracking-tight">{isSetup ? t('auth.createYourAccount') : t('auth.signIn')}</h1>
-        <p className="text-sm text-muted-foreground mt-1.5 mb-6">
-          {isSetup
+      <div className="rounded-2xl border-[2.5px] border-ink bg-paper-3 p-6 shadow-sh2">
+        {mode !== 'setup' && (
+          <div className="mb-5 flex rounded-xl border border-ink/20 bg-paper-2/80 p-1">
+            <button
+              type="button"
+              onClick={() => { setCurrentMode('login'); setError(''); setAttempted(false) }}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
+                currentMode === 'login'
+                  ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
+                  : 'text-ink-mute hover:text-ink'
+              }`}
+            >
+              {t('auth.signIn')}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setCurrentMode('register'); setError(''); setAttempted(false) }}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
+                currentMode === 'register'
+                  ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
+                  : 'text-ink-mute hover:text-ink'
+              }`}
+            >
+              {t('auth.createAccount')}
+            </button>
+          </div>
+        )}
+        <h1 className="text-lg font-heading font-bold tracking-tight text-ink">{isCreatingAccount ? t('auth.createYourAccount') : t('auth.signIn')}</h1>
+        <p className="text-sm text-ink-mute mt-1.5 mb-6">
+          {isCreatingAccount
             ? t('auth.setupDescription')
             : t('auth.loginDescription')}
         </p>
@@ -150,10 +177,10 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
             <ClayInput
               id="auth-password"
               type="password"
-              autoComplete={isSetup ? 'new-password' : 'current-password'}
+              autoComplete={isCreatingAccount ? 'new-password' : 'current-password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder={isSetup ? t('auth.passwordPlaceholderSetup') : t('auth.passwordPlaceholderLogin')}
+              placeholder={isCreatingAccount ? t('auth.passwordPlaceholderSetup') : t('auth.passwordPlaceholderLogin')}
               aria-invalid={showPasswordError}
               aria-describedby={showPasswordError ? 'auth-password-error' : undefined}
             />
@@ -183,18 +210,39 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
           )}
           <ClayButton type="submit" className="w-full h-10" disabled={busy}>
             {busy && <Loader2 className="animate-spin" aria-hidden />}
-            {busy ? (isSetup ? t('auth.creating') : t('auth.signingIn')) : isSetup ? t('auth.createAccount') : t('auth.signIn')}
+            {busy ? (isCreatingAccount ? t('auth.creating') : t('auth.signingIn')) : isCreatingAccount ? t('auth.createAccount') : t('auth.signIn')}
           </ClayButton>
         </form>
-        {!isSetup && (
-          <button
-            type="button"
-            onClick={() => setShowForgot(true)}
-            className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t('auth.forgotPassword')}
-          </button>
-        )}
+        {!isCreatingAccount ? (
+          <div className="mt-4 flex flex-col items-center gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => setShowForgot(true)}
+              className="text-ink-mute hover:text-ink transition-colors"
+            >
+              {t('auth.forgotPassword')}
+            </button>
+            <p className="text-ink-mute">
+              <button
+                type="button"
+                onClick={() => { setCurrentMode('register'); setError(''); setAttempted(false) }}
+                className="font-medium text-red hover:underline"
+              >
+                {t('auth.createAccount')} →
+              </button>
+            </p>
+          </div>
+        ) : mode !== 'setup' ? (
+          <div className="mt-4 text-center text-xs text-ink-mute">
+            <button
+              type="button"
+              onClick={() => { setCurrentMode('login'); setError(''); setAttempted(false) }}
+              className="font-medium text-red hover:underline"
+            >
+              ← {t('auth.signIn')}
+            </button>
+          </div>
+        ) : null}
       </div>
     </Centered>
   )
@@ -256,11 +304,10 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
 
   return (
     <Centered>
-      <div className="mb-6 flex items-center gap-2">
-        <span className="inline-block size-2 rounded-full bg-foreground" />
-        <span className="font-semibold tracking-tight text-sm">Router7</span>
+      <div className="mb-6 flex items-center justify-center">
+        <BrandLockup />
       </div>
-      <div className="rounded-3xl border bg-card p-6">
+      <div className="rounded-2xl border-[2.5px] border-ink bg-paper-3 p-6 shadow-sh2">
         <h1 className="text-base font-medium">{t('auth.forgotPassword')}</h1>
 
         {step === 'request' && (

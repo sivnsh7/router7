@@ -75,7 +75,7 @@ export default function MediaDetailPage({ modality }: { modality: 'image' | 'vid
 
   return (
     <div>
-      <PageHeader title={label || t('models.providersHeading')} description={t('models.providersHeading')} divider={false} actions={<ModelsTabs />} />
+      <PageHeader title={label || t('models.providersHeading')} description={t('models.providersHeading')} divider={false} tabs={<ModelsTabs />} />
 
       <div className="space-y-6">
         <Link to={modality === 'transcription' ? '/models/audio' : `/models/${modality}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">

@@ -16,8 +16,10 @@ import {
   Search,
   SquareTerminal,
   Sun,
+  X,
   Zap,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { apiFetch } from '@/lib/api'
 import { copyText } from '@/lib/clipboard'
 import { toast } from '@/lib/toast'
@@ -49,7 +51,7 @@ async function copyAndToast(value: string, success: string, failure: string) {
 // (arrows + Enter) with proper listbox semantics.
 export function CommandPalette() {
   const { t } = useI18n()
-  const { resolvedDark, cycleTheme } = useTheme()
+  const { resolvedDark, setTheme } = useTheme()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -124,7 +126,7 @@ export function CommandPalette() {
         keywords: 'theme dark light mode toggle',
         icon: resolvedDark ? Sun : Moon,
         run: () => {
-          cycleTheme()
+          setTheme(resolvedDark ? 'light' : 'dark')
         },
       },
       {
@@ -176,7 +178,7 @@ export function CommandPalette() {
       })
     }
     return [...pages, ...actions, ...models]
-  }, [cycleTheme, entries, navigate, resolvedDark, t])
+  }, [setTheme, entries, navigate, resolvedDark, t])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -228,7 +230,7 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center bg-black/40 px-4 pt-[18vh] backdrop-blur-[2px]"
+      className="fixed inset-0 z-[70] flex items-start justify-center bg-ink/50 px-4 pt-[12vh] sm:pt-[15vh] backdrop-blur-sm animate-in fade-in duration-150"
       onMouseDown={e => {
         if (e.target === e.currentTarget) hide()
       }}
@@ -237,11 +239,11 @@ export function CommandPalette() {
         role="dialog"
         aria-modal="true"
         aria-label={t('palette.title')}
-        className="w-full max-w-lg overflow-hidden rounded-2xl border bg-popover shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-xl overflow-hidden rounded-[18px] border-[2.5px] border-ink bg-paper-3 text-ink shadow-sh2 animate-in fade-in zoom-in-95 duration-150 flex flex-col"
         onKeyDown={onListKeyDown}
       >
-        <div className="flex items-center gap-2.5 border-b px-3.5">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
+        <div className="relative flex items-center gap-3 border-b-2 border-ink/15 bg-paper-2/60 px-4 py-3">
+          <Search className="size-5 shrink-0 text-ink-mute" aria-hidden="true" />
           <input
             ref={inputRef}
             value={query}
@@ -255,49 +257,102 @@ export function CommandPalette() {
             aria-expanded="true"
             aria-controls="command-palette-list"
             aria-activedescendant={filtered[active] ? `cmd-${filtered[active].id}` : undefined}
-            className="h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            className="h-8 flex-1 min-w-0 border-0 border-none bg-transparent p-0 text-sm font-sans text-ink placeholder:text-ink-mute outline-none focus:outline-none focus:ring-0 shadow-none appearance-none"
           />
-          <kbd className="rounded border px-1.5 py-0.5 text-[10px] text-muted-foreground">esc</kbd>
+          {query && (
+            <button
+              type="button"
+              onClick={() => { setQuery(''); setActive(0); inputRef.current?.focus() }}
+              aria-label={t('models.clearSearch')}
+              className="flex size-6 items-center justify-center rounded-md text-ink-mute hover:bg-ink/10 hover:text-ink transition-colors"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+          <kbd className="inline-flex items-center rounded-md border border-ink/20 bg-paper-3 px-2 py-0.5 font-mono text-[10px] font-bold text-ink-mute shadow-sm">
+            ESC
+          </kbd>
         </div>
-        <div ref={listRef} id="command-palette-list" role="listbox" className="max-h-80 overflow-y-auto p-1.5">
+        <div ref={listRef} id="command-palette-list" role="listbox" className="max-h-[380px] overflow-y-auto p-2 space-y-1">
           {filtered.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-muted-foreground">{t('palette.empty')}</p>
+            <div className="py-12 text-center text-sm font-mono text-ink-mute">
+              {t('palette.empty')}
+            </div>
           )}
           {groups.map(g => {
             const items = filtered.filter(c => c.group === g.key)
             if (items.length === 0) return null
             return (
-              <div key={g.key} className="mb-1 last:mb-0">
-                <p className="px-2.5 pb-1 pt-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                  {t(g.labelKey)}
-                </p>
-                {items.map(cmd => {
-                  flatIndex += 1
-                  const index = flatIndex
-                  const isActive = index === active
-                  const Icon = cmd.icon
-                  return (
-                    <button
-                      key={cmd.id}
-                      id={`cmd-${cmd.id}`}
-                      type="button"
-                      role="option"
-                      aria-selected={isActive}
-                      data-index={index}
-                      onMouseEnter={() => setActive(index)}
-                      onClick={() => runCommand(cmd)}
-                      className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                        isActive ? 'bg-muted text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      <Icon className="size-4 shrink-0" />
-                      <span className="min-w-0 flex-1 truncate">{cmd.label}</span>
-                    </button>
-                  )
-                })}
+              <div key={g.key} className="mb-2 last:mb-0">
+                <div className="px-3 pt-2 pb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-ink-mute flex items-center justify-between">
+                  <span>{t(g.labelKey)}</span>
+                  <span className="text-[10px] opacity-60 tabular-nums">{items.length}</span>
+                </div>
+                <div className="space-y-0.5">
+                  {items.map(cmd => {
+                    flatIndex += 1
+                    const index = flatIndex
+                    const isActive = index === active
+                    const Icon = cmd.icon
+                    return (
+                      <button
+                        key={cmd.id}
+                        id={`cmd-${cmd.id}`}
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        data-index={index}
+                        onMouseEnter={() => setActive(index)}
+                        onClick={() => runCommand(cmd)}
+                        className={cn(
+                          "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-all outline-none select-none",
+                          isActive
+                            ? "bg-red text-paper-3 font-semibold shadow-sh1 -translate-y-px"
+                            : "text-ink hover:bg-ink/5"
+                        )}
+                      >
+                        <div className={cn(
+                          "flex size-7 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                          isActive ? "border-paper-3/30 bg-red-dark text-paper-3" : "border-ink/15 bg-paper-2 text-ink-mute group-hover:text-ink"
+                        )}>
+                          <Icon className="size-3.5" aria-hidden="true" />
+                        </div>
+                        <span className="min-w-0 flex-1 truncate font-sans text-sm">{cmd.label}</span>
+                        <span className={cn(
+                          "font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md",
+                          isActive ? "bg-red-dark text-paper-3/90" : "bg-ink/5 text-ink-mute"
+                        )}>
+                          {g.key === 'pages' ? 'Page' : g.key === 'actions' ? 'Action' : 'Model'}
+                        </span>
+                        {isActive && (
+                          <span className="flex items-center text-xs font-mono opacity-80" aria-hidden="true">
+                            ↵
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )
           })}
+        </div>
+        <div className="flex items-center justify-between border-t border-ink/15 bg-paper-2/70 px-4 py-2 text-[11px] font-mono text-ink-mute">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border border-ink/15 bg-paper-3 px-1.5 py-0.5 text-[10px] shadow-sm">↑</kbd>
+              <kbd className="rounded border border-ink/15 bg-paper-3 px-1.5 py-0.5 text-[10px] shadow-sm">↓</kbd>
+              <span className="ml-0.5">navigate</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border border-ink/15 bg-paper-3 px-1.5 py-0.5 text-[10px] shadow-sm">↵</kbd>
+              <span className="ml-0.5">select</span>
+            </span>
+          </div>
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-ink/15 bg-paper-3 px-1.5 py-0.5 text-[10px] shadow-sm">esc</kbd>
+            <span className="ml-0.5">close</span>
+          </span>
         </div>
       </div>
     </div>

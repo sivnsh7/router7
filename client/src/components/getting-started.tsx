@@ -66,7 +66,7 @@ export function GettingStarted() {
   }
 
   return (
-    <section className="rounded-3xl border bg-card p-5">
+    <section className="rounded-2xl border-[2px] border-ink bg-paper-3 p-5 shadow-sh1">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold">{t('setup.title')}</h2>
@@ -93,7 +93,7 @@ export function GettingStarted() {
           description={t('setup.step1Desc')}
           action={
             <Link to="/keys">
-              <ClayButton variant="outline" size="sm">
+              <ClayButton variant="clay-secondary" size="sm">
                 {t('setup.step1Cta')}
                 <ArrowRight data-icon="inline-end" className="size-3.5" />
               </ClayButton>
@@ -107,7 +107,7 @@ export function GettingStarted() {
           description={t('setup.step2Desc')}
           action={
             <Link to="/playground">
-              <ClayButton variant="outline" size="sm">
+              <ClayButton variant="clay-secondary" size="sm">
                 {t('setup.step2Cta')}
                 <ArrowRight data-icon="inline-end" className="size-3.5" />
               </ClayButton>

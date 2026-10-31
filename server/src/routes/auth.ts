@@ -175,6 +175,42 @@ authRouter.post('/setup', (req: Request, res: Response) => {
   res.status(201).json({ token, email: user.email });
 });
 
+// User Registration endpoint. Allows registering an account on the gateway.
+authRouter.post('/register', (req: Request, res: Response) => {
+  // If no user exists yet, remote callers must provide a setup code
+  if (userCount() === 0 && !isLoopbackRemote(req) && !setupCodeMatches((req.body ?? {}).setupCode)) {
+    res.status(403).json({
+      error: {
+        message: 'A setup code is required to create the first account from a remote device. ' +
+          'Check the server logs for the code, or open the dashboard from a browser on the machine running Router7.',
+        type: 'setup_code_required',
+      },
+    });
+    return;
+  }
+
+  const parsed = signupSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: { message: parsed.error.errors.map(e => e.message).join(', ') } });
+    return;
+  }
+
+  try {
+    const user = createUser(parsed.data.email, parsed.data.password);
+    if (userCount() === 1) {
+      clearSetupCode();
+    }
+    const token = createSession(user.userId);
+    res.status(201).json({ token, email: user.email });
+  } catch (err: any) {
+    if (err?.code === 'email_taken') {
+      res.status(409).json({ error: { message: 'An account with that email already exists', type: 'email_taken' } });
+      return;
+    }
+    res.status(500).json({ error: { message: 'Failed to create account', type: 'internal_error' } });
+  }
+});
+
 authRouter.post('/login', (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {

@@ -43,6 +43,7 @@ Your router updates its own model catalog from a signed feed: new free models, q
 - [How it compares](#how-it-compares)
 - [Features](#features)
 - [Quick start](#quick-start)
+- [Authentication & User Access](#authentication--user-access)
 - [Desktop app](#desktop-app)
 - [Works with OpenAI-compatible clients](#works-with-openai-compatible-clients)
 - [Languages](#languages)
@@ -189,6 +190,35 @@ Open http://localhost:3001, add your provider keys on the **Keys** page, reorder
 On Windows, the easiest path is the desktop **[`.exe` installer from Releases](https://github.com/sivnsh7/router7/releases/latest)** (below). On Android, see the experimental [Termux guide](docs/en/install/02-android-termux.md).
 
 Everything else — Docker Compose, local development, declarative startup config, production builds, LAN access, and backups — is in **[docs/en/install/01-install.md](docs/en/install/01-install.md)**.
+
+## Authentication & User Access
+
+Router7 provides flexible authentication modes tailored for both interactive administration and automated headless workflows.
+
+### 1. Web Dashboard Sign-In & Self-Registration
+The React web dashboard protects gateway configurations, provider API keys, and routing telemetry.
+- **First-Run Setup (`/setup`)**: On a clean database with zero accounts, the first visitor sets the root administrator email and password. Local loopback connections (`localhost:3002`) require no setup code; remote connections are protected by the one-time code printed in the server boot log.
+- **User Registration (`/register`)**: Additional operators and team members can register directly by toggling to the **Register** tab on the sign-in modal, or by calling `POST /api/auth/register` with an email and minimum 8-character password.
+- **Persistent Sessions**: Authenticated users receive secure 30-day session tokens (`router7_dashboard_token`) persisted in browser local storage.
+
+### 2. How to Use Router7 Without a Dashboard Account
+You do **not** need to create or log into a dashboard account to use Router7 for AI inference:
+- **Direct Unified API Key**: All inference endpoints (`/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/speech`, `/v1/messages`) authenticate independently using your Unified Gateway Token:
+  ```bash
+  curl http://localhost:3002/v1/chat/completions \
+    -H "Authorization: Bearer <YOUR_UNIFIED_ROUTER7_KEY>" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "model": "auto",
+      "messages": [{"role": "user", "content": "Hello Router7"}]
+    }'
+  ```
+- **Desktop Zero-Config Mode**: The native desktop app automatically manages a local daemon with zero credentials to type. Grab your unified token directly from the tray popover.
+- **Automated CLI Configuration**: Configure coding agents in one step without ever touching the web interface:
+  ```bash
+  npx router7 setup-claude --url http://localhost:3002 --api-key <YOUR_UNIFIED_KEY>
+  ```
+- **Headless Declarative Provisioning**: Deploying in headless CI/CD, Kubernetes, or Docker? Inject your provider keys via environment variables or JSON seed files (`ROUTER7_KEYS_JSON`) at startup without interactive registration.
 
 ## Desktop app
 

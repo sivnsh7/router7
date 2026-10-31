@@ -254,7 +254,7 @@ export default function EmbeddingsPage() {
         title={t('nav.vectorModels') || t('embeddings.title')}
         description={t('embeddings.description')}
         divider={false}
-        actions={<ModelsTabs />}
+        tabs={<ModelsTabs />}
       />
 
       <div className="space-y-6">

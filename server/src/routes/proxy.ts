@@ -865,6 +865,29 @@ const transcriptionUpload = multer({
 
 const TRANSCRIPTION_FORMATS = new Set(['json', 'text', 'verbose_json', 'srt', 'vtt']);
 
+/**
+ * Validates audio magic-byte container signatures to prevent arbitrary file upload.
+ * Supports: WAV (RIFF), MP3 (ID3 or frame sync), OGG/Opus, FLAC, WebM/Matroska, MP4/M4A/AAC.
+ */
+function isAudioPayload(buf: Buffer): boolean {
+  if (!buf || buf.length < 4) return false;
+  // RIFF container (WAV)
+  if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46) return true;
+  // ID3 (MP3 metadata header)
+  if (buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) return true;
+  // MP3 frame sync (11 bits set: 0xFF followed by 0xE0-0xFF)
+  if (buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0) return true;
+  // Ogg container (Opus / Vorbis)
+  if (buf[0] === 0x4f && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53) return true;
+  // FLAC
+  if (buf[0] === 0x66 && buf[1] === 0x4c && buf[2] === 0x61 && buf[3] === 0x43) return true;
+  // Matroska / WebM EBML
+  if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return true;
+  // MP4 / M4A / AAC container ('ftyp' at offset 4)
+  if (buf.length >= 8 && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return true;
+  return false;
+}
+
 function transcriptionBadRequest(res: Response, message: string, code?: string): void {
   res.status(400).json({ error: { message, type: 'invalid_request_error', ...(code ? { code } : {}) } });
 }
@@ -894,6 +917,10 @@ proxyRouter.post('/audio/transcriptions', (req: Request, res: Response, next) =>
   const file = req.file;
   if (!file || !file.buffer?.length) {
     transcriptionBadRequest(res, 'Invalid request: `file` is required (multipart/form-data audio upload).');
+    return;
+  }
+  if (!isAudioPayload(file.buffer)) {
+    transcriptionBadRequest(res, 'Invalid audio file: unrecognized audio container signature.', 'unsupported_audio_format');
     return;
   }
   const model = typeof req.body?.model === 'string' ? req.body.model.trim() : '';
@@ -1847,7 +1874,10 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
   // cacheable temperature are eligible (v1 scope: streaming always bypasses); a
   // per-request `X-Router7-Cache` header can force or bypass. Off unless enabled
   // via the RESPONSE_CACHE env var or the response_cache_enabled setting.
-  const cacheDirective = parseCacheDirective(req.headers['x-freellm-cache'], req.headers['cache-control']);
+  const cacheDirective = parseCacheDirective(
+    (req.headers['x-router7-cache'] ?? req.headers['x-freellm-cache']) as string | undefined,
+    req.headers['cache-control'],
+  );
   // Streaming requests participate in the cache too: same canonical key (the
   // request content is identical), but hits are looked up in the streaming
   // store and replayed as SSE rather than JSON (see below).
@@ -1889,6 +1919,7 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('X-Routed-Via', 'cache');
         res.setHeader('X-Router7-Cache', 'HIT');
+        res.setHeader('X-FreeLLM-Cache', 'HIT');
         res.write(streamHit.sse);
         res.end();
         return;
@@ -1901,6 +1932,7 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
         // The savings are reported separately by GET /api/cache/stats.
         res.setHeader('X-Routed-Via', 'cache');
         res.setHeader('X-Router7-Cache', 'HIT');
+        res.setHeader('X-FreeLLM-Cache', 'HIT');
         res.json(withExecutionId(hit.body, requestGroupId));
         return;
       }
@@ -2233,7 +2265,9 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
           res.setHeader('Cache-Control', 'no-cache');
           res.setHeader('Connection', 'keep-alive');
           res.setHeader('X-Routed-Via', routedViaValue(route.platform, route.modelId));
-          res.setHeader('X-Router7-Cache', cacheKey ? 'MISS' : 'OFF');
+          const cacheStatus = cacheKey ? 'MISS' : 'OFF';
+          res.setHeader('X-Router7-Cache', cacheStatus);
+          res.setHeader('X-FreeLLM-Cache', cacheStatus);
           setFallbackHeaders(res, attempt, attemptLog);
           headerSent = true;
           // Committed: the answer is on its way, so the retry budget must no
@@ -2798,7 +2832,9 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
         setFallbackHeaders(res, attempt, attemptLog);
         // Normalize array-shaped message.content to a string on the way out (#166).
         const outboundBody = sanitizeResponse(normalizeOutboundContent(result));
-        res.setHeader('X-Router7-Cache', cacheKey ? 'MISS' : 'OFF');
+        const cacheStatus = cacheKey ? 'MISS' : 'OFF';
+        res.setHeader('X-Router7-Cache', cacheStatus);
+        res.setHeader('X-FreeLLM-Cache', cacheStatus);
 
         // #1084: agents show zero context usage when the upstream omits
         // `usage` (many free-tier providers do). Fall back to the same

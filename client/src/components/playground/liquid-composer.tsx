@@ -110,7 +110,7 @@ export function LiquidComposer({
             onPaste={onPaste}
             placeholder={placeholder}
             rows={1}
-            className={`block min-h-[32px] w-full resize-none bg-transparent px-1 py-1.5 text-sm outline-none placeholder:text-muted-foreground transition-opacity ${recording ? 'opacity-0' : ''}`}
+            className={`block min-h-[32px] w-full resize-none bg-transparent px-1 py-1.5 text-base md:text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring/40 rounded placeholder:text-muted-foreground transition-opacity ${recording ? 'opacity-0' : ''}`}
             style={{ height: 'auto', overflow: 'hidden' }}
             onInput={e => {
               const el = e.target as HTMLTextAreaElement

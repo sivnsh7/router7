@@ -107,13 +107,15 @@ export default function KeysPage() {
                 {t('keys.addKey')}
               </ClayButton>
             )}
-            <SegmentedControl
-              value={tab}
-              onValueChange={v => setTab(v as KeysTab)}
-              options={KEYS_TABS.map(tb => ({ value: tb.id, label: t(tb.labelKey) }))}
-              ariaLabel={t('keys.pageTitle')}
-            />
           </div>
+        }
+        tabs={
+          <SegmentedControl
+            value={tab}
+            onValueChange={v => setTab(v as KeysTab)}
+            options={KEYS_TABS.map(tb => ({ value: tb.id, label: t(tb.labelKey) }))}
+            ariaLabel={t('keys.pageTitle')}
+          />
         }
       />
 

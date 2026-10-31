@@ -96,6 +96,10 @@ export function ModelCombobox({
       <PopoverTrigger
         aria-label={ariaLabel}
         aria-invalid={ariaInvalid || undefined}
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls="model-combobox-list"
         className={
           triggerClassName ??
           'flex h-8 w-[260px] items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-input bg-transparent px-3 text-sm outline-none transition-colors hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30'
@@ -116,17 +120,25 @@ export function ModelCombobox({
             }}
             placeholder={placeholder}
             aria-label={placeholder}
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls="model-combobox-list"
+            aria-activedescendant={filtered[active] ? `model-opt-${filtered[active].value}` : undefined}
             className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         {header}
-        <div className="max-h-72 overflow-y-auto p-1">
+        <div id="model-combobox-list" role="listbox" aria-label={ariaLabel || placeholder} className="max-h-72 overflow-y-auto p-1">
           {filtered.length === 0 ? (
             <div className="px-2 py-6 text-center text-xs text-muted-foreground">{emptyText}</div>
           ) : (
             filtered.map((o, i) => (
               <button
                 key={o.value}
+                id={`model-opt-${o.value}`}
+                role="option"
+                aria-selected={o.value === value}
                 type="button"
                 onMouseEnter={() => setActive(i)}
                 onClick={() => pick(o.value)}

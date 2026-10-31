@@ -234,7 +234,7 @@ export default function ModelDetailPage() {
 
   return (
     <div>
-      <PageHeader title={label} description={t('models.providersHeading')} divider={false} actions={<ModelsTabs />} />
+      <PageHeader title={label} description={t('models.providersHeading')} divider={false} tabs={<ModelsTabs />} />
 
       <div className="space-y-6">
         <Link to="/models/chat" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">

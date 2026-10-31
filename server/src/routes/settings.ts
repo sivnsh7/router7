@@ -391,6 +391,23 @@ settingsRouter.get('/api-key', (_req: Request, res: Response) => {
   res.json({ apiKey: getUnifiedApiKey() });
 });
 
+// Update / set the unified API key to custom value
+settingsRouter.put('/api-key', (req: Request, res: Response) => {
+  const { apiKey } = req.body ?? {};
+  if (!apiKey || typeof apiKey !== 'string' || apiKey.trim().length < 8) {
+    res.status(400).json({ error: 'API key must be at least 8 characters' });
+    return;
+  }
+  const cleanKey = apiKey.trim();
+  if (!/^[A-Za-z0-9_\-\.]+$/.test(cleanKey)) {
+    res.status(400).json({ error: 'API key contains invalid characters (allowed: alphanumeric, _, -, .)' });
+    return;
+  }
+  const db = getDb();
+  db.prepare("UPDATE settings SET value = ? WHERE key = 'unified_api_key'").run(cleanKey);
+  res.json({ apiKey: cleanKey });
+});
+
 // Regenerate the unified API key
 settingsRouter.post('/api-key/regenerate', (_req: Request, res: Response) => {
   const newKey = regenerateUnifiedKey();

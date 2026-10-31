@@ -13,6 +13,9 @@ server/data/
 .encryption-key
 .env
 .env.local
+.env.*
+.claude/settings.local.json
+.claude/*.local.json
 /tunnel-client.yaml
 .DS_Store
 
@@ -25,3 +28,4 @@ update-hermes.sh
 
 # Monetization planning — private, never committed
 monetization/
+*.zip

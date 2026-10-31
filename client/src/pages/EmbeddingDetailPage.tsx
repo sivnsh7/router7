@@ -57,7 +57,7 @@ export default function EmbeddingDetailPage() {
 
   return (
     <div>
-      <PageHeader title={family || t('models.providersHeading')} description={t('models.providersHeading')} divider={false} actions={<ModelsTabs />} />
+      <PageHeader title={family || t('models.providersHeading')} description={t('models.providersHeading')} divider={false} tabs={<ModelsTabs />} />
 
       <div className="space-y-6">
         <Link to="/models/embeddings" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">

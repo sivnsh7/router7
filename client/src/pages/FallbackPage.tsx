@@ -340,7 +340,7 @@ export default function FallbackPage() {
         title={t('nav.modelIndex') || t('models.title')}
         description={t('strategies.description')}
         divider={false}
-        actions={<ModelsTabs />}
+        tabs={<ModelsTabs />}
       />
 
       <Reveal staggerIndex={0}>
@@ -407,7 +407,7 @@ export default function FallbackPage() {
               type="button"
               onClick={toggleOptions}
               aria-expanded={!optionsCollapsed}
-              className="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-mono font-medium text-ink-mute transition-colors hover:bg-ink/5 hover:text-ink"
             >
               {t('strategies.moreOptions')}
               <ChevronDown className={`size-3.5 transition-transform ${optionsCollapsed ? '-rotate-90' : ''}`} />

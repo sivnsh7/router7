@@ -343,7 +343,10 @@ export default function LogsPage() {
         <div
           ref={listRef}
           onScroll={handleScroll}
-          className="max-h-[65vh] min-h-[300px] overflow-y-auto pr-1"
+          tabIndex={0}
+          role="region"
+          aria-label={t('nav.runtimeStream')}
+          className="max-h-[65vh] min-h-[300px] overflow-y-auto pr-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm"
         >
           {levels.length === 0 ? (
             <EmptyState
@@ -387,7 +390,7 @@ export default function LogsPage() {
             type="button"
             size="sm"
             onClick={jumpToLatest}
-            className="absolute inset-x-0 bottom-4 mx-auto w-fit shadow-sh2 font-mono text-xs bg-clay text-white hover:bg-clay-dark"
+            className="absolute inset-x-0 bottom-4 mx-auto w-fit shadow-sh2 font-mono text-xs bg-red text-paper-3 dark:text-white hover:bg-red-dark"
           >
             <ArrowDownToLine className="size-3.5 mr-1.5" />
             {t('logs.jumpToLatest')}

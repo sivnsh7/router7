@@ -146,7 +146,7 @@ export default function FusionPage() {
         title={t('nav.ensembleComposer') || t('fusion.title')}
         description={t('fusion.description')}
         divider={false}
-        actions={<ModelsTabs />}
+        tabs={<ModelsTabs />}
       />
 
       {isLoading ? (
@@ -203,7 +203,7 @@ export default function FusionPage() {
                         onClick={() => setMode('auto')}
                         className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
                           mode === 'auto'
-                            ? 'bg-clay text-white font-bold'
+                            ? 'bg-red text-paper-3 dark:text-white font-bold'
                             : 'bg-paper-2 text-ink-mute hover:text-ink'
                         }`}
                       >
@@ -214,7 +214,7 @@ export default function FusionPage() {
                         onClick={() => setMode('explicit')}
                         className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
                           mode === 'explicit'
-                            ? 'bg-clay text-white font-bold'
+                            ? 'bg-red text-paper-3 dark:text-white font-bold'
                             : 'bg-paper-2 text-ink-mute hover:text-ink'
                         }`}
                       >
@@ -304,7 +304,7 @@ export default function FusionPage() {
                         onClick={() => setStrategy('synthesize')}
                         className={`px-2 py-1.5 rounded text-left text-xs font-mono transition-colors border ${
                           strategy === 'synthesize'
-                            ? 'border-clay bg-clay-tint text-clay font-bold'
+                            ? 'border-clay bg-clay-tint text-clay-dark dark:text-clay font-bold'
                             : 'border-ink/10 bg-paper-2 text-ink-mute hover:text-ink'
                         }`}
                       >
@@ -316,7 +316,7 @@ export default function FusionPage() {
                         onClick={() => setStrategy('best_of')}
                         className={`px-2 py-1.5 rounded text-left text-xs font-mono transition-colors border ${
                           strategy === 'best_of'
-                            ? 'border-clay bg-clay-tint text-clay font-bold'
+                            ? 'border-clay bg-clay-tint text-clay-dark dark:text-clay font-bold'
                             : 'border-ink/10 bg-paper-2 text-ink-mute hover:text-ink'
                         }`}
                       >

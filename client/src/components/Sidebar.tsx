@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { useI18n } from '@/i18n'
 import { logout } from '@/lib/api'
 import { NAV_GROUPS } from './navigation-config'
+import { BrandLockup } from './brand-lockup'
 
 
 interface SidebarProps {
@@ -28,16 +29,20 @@ export function Sidebar({ open, collapsed, onToggleCollapse }: SidebarProps) {
     >
       <div className="flex h-14 items-center justify-between px-3 border-b border-ink/20">
         {collapsed ? (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            aria-label={t('sidebar.expand')}
-            className="flex items-center justify-center size-8 rounded-lg border border-ink/20 bg-paper-3 text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors"
-          >
-            <ChevronRight className="size-4" />
-          </button>
+          <div className="flex items-center justify-center w-full gap-1">
+            <BrandLockup collapsed markOnly />
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              aria-label={t('sidebar.expand')}
+              className="flex items-center justify-center size-7 rounded-lg border border-ink/20 bg-paper-3 text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors"
+            >
+              <ChevronRight className="size-3.5" />
+            </button>
+          </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <>
+            <BrandLockup />
             <button
               type="button"
               onClick={onToggleCollapse}
@@ -46,11 +51,7 @@ export function Sidebar({ open, collapsed, onToggleCollapse }: SidebarProps) {
             >
               <ChevronLeft className="size-4" />
             </button>
-            <div className="flex-1 min-w-0">
-              <span className="font-semibold tracking-tight text-sm truncate">Router7</span>
-              <span className="font-mono text-xs text-ink-mute truncate block">SIVNSH7 · AI Routing</span>
-            </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -64,7 +65,7 @@ export function Sidebar({ open, collapsed, onToggleCollapse }: SidebarProps) {
                   return (
                     <NavLink key={item.to} to={item.to} aria-label={t(item.labelKey)} title={t(item.labelKey)}
                       className={({ isActive }) => cn('flex items-center justify-center size-10 rounded-lg transition-colors', isActive ? 'bg-red text-paper-3' : 'text-ink-soft hover:bg-ink/5 hover:text-ink')}>
-                      <ItemIcon className="h-5 w-5" aria-hidden="true" />
+                      <ItemIcon className="size-4 shrink-0" aria-hidden="true" />
                     </NavLink>
                   )
                 })}
@@ -92,7 +93,7 @@ export function Sidebar({ open, collapsed, onToggleCollapse }: SidebarProps) {
                               : 'text-ink-soft hover:bg-ink/5 hover:text-ink'
                           )}
                         >
-                          <span className="flex size-4 shrink-0 items-center justify-center"><ItemIcon className="h-5 w-5" aria-hidden="true" /></span>
+                          <ItemIcon className="size-4 shrink-0" aria-hidden="true" />
                           <span className="truncate">{t(item.labelKey)}</span>
                         </NavLink>
                         {item.children && isParentActive && (

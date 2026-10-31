@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Menu, Search, Settings, LogOut, KeyRound, Sun, Moon, Monitor, User } from 'lucide-react'
+import { Menu, Search, Settings, LogOut, KeyRound, Sun, Moon } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { logout } from '@/lib/api'
 import { openCommandPalette } from '@/components/command-palette-state'
@@ -10,7 +10,7 @@ import { SettingsDialog } from '@/components/settings-dialog'
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform)
 
-const PAGE_TITLE_MAP: Record<string, string> = {
+export const PAGE_TITLE_MAP: Record<string, string> = {
   '/models/chat': 'nav.modelIndex',
   '/models/fusion': 'nav.ensembleComposer',
   '/models/embeddings': 'nav.vectorModels',
@@ -46,24 +46,48 @@ function AccountDropdown({
 }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(!open)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-mono text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors"
+        aria-controls="account-menu"
+        aria-label={t('nav.settings')}
+        title={t('nav.settings')}
+        className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-mono text-ink-soft hover:bg-paper-3 hover:text-ink transition-colors"
       >
-        <User className="size-5" aria-hidden="true" />
+        <Settings className="size-4" aria-hidden="true" />
         <span className="hidden sm:inline">{t('nav.settings')}</span>
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-1 w-56 rounded-lg border border-ink bg-paper-3 shadow-sh2 overflow-hidden">
+          <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); triggerRef.current?.focus() }} />
+          <div
+            id="account-menu"
+            role="menu"
+            aria-orientation="vertical"
+            className="absolute right-0 z-50 mt-1 w-56 rounded-lg border border-ink bg-paper-3 shadow-sh2 overflow-hidden"
+          >
             <div className="p-1.5 space-y-0.5">
               <button
+                role="menuitem"
                 onClick={() => { onOpenSettings(); setOpen(false) }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-left font-mono text-sm hover:bg-ink/10 rounded-md"
               >
@@ -72,6 +96,7 @@ function AccountDropdown({
               </button>
               <hr className="border-[1.5px] border-ink my-1" />
               <button
+                role="menuitem"
                 onClick={() => { onChangeEmail(); setOpen(false) }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-left font-mono text-sm hover:bg-ink/10 rounded-md"
               >
@@ -79,6 +104,7 @@ function AccountDropdown({
                 {changeEmailLabel}
               </button>
               <button
+                role="menuitem"
                 onClick={() => { onChangePassword(); setOpen(false) }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-left font-mono text-sm hover:bg-ink/10 rounded-md"
               >
@@ -86,7 +112,8 @@ function AccountDropdown({
                 {changePasswordLabel}
               </button>
               {showSignOut && (
-              <button
+                <button
+                  role="menuitem"
                   onClick={() => { logout(); setOpen(false) }}
                   className="flex items-center gap-2 w-full px-3 py-2 text-left font-mono text-sm hover:bg-ink/10 rounded-md"
                 >
@@ -116,7 +143,7 @@ export function TopBar({
   isMacDesktop?: boolean
 }) {
   const { t } = useI18n()
-  const { theme, cycleTheme } = useTheme()
+  const { setTheme, resolvedDark } = useTheme()
   const location = useLocation()
   const [credentialsMode, setCredentialsMode] = useState<'password' | 'email' | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -130,8 +157,10 @@ export function TopBar({
     return ''
   }, [location.pathname, t])
 
-  const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
-  const themeIcon = theme === 'dark' ? <Moon className="size-4" /> : theme === 'light' ? <Sun className="size-4" /> : <Monitor className="size-4" />
+  const toggleTheme = () => {
+    setTheme(resolvedDark ? 'light' : 'dark')
+  }
+  const themeIcon = resolvedDark ? <Moon className="size-4" /> : <Sun className="size-4" />
 
   return (
     <header
@@ -144,7 +173,7 @@ export function TopBar({
           onClick={onMenuClick}
           style={isDesktopApp ? ({ WebkitAppRegion: 'no-drag' } as React.CSSProperties) : undefined}
           aria-label={t('nav.openMenu')}
-          className="flex items-center justify-center size-10 rounded-lg border-[2.5px] border-ink bg-paper-3 text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors"
+          className="flex items-center justify-center size-8 rounded-lg border border-ink/20 bg-paper-2 text-ink-soft hover:bg-paper-3 hover:text-ink transition-colors"
         >
           <Menu className="size-4" />
         </button>
@@ -157,38 +186,45 @@ export function TopBar({
       )}
 
       <div
-        className="ms-auto flex items-center gap-1"
+        className="ms-auto flex items-center"
         style={isDesktopApp ? ({ WebkitAppRegion: 'no-drag' } as React.CSSProperties) : undefined}
       >
-        <button
-          type="button"
-          onClick={openCommandPalette}
-          aria-label={t('palette.title')}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-mono border border-ink/20 bg-paper-3 hover:bg-ink/5 transition-colors rounded-lg text-ink-soft"
-        >
-          <Search className="size-3.5" />
-          <kbd className="hidden sm:inline text-[10px] text-ink-mute">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
-        </button>
+        <div className="inline-flex items-center rounded-xl border border-ink/20 bg-paper-2/60 p-0.5 shadow-sm">
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            aria-label={t('palette.title')}
+            className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-mono text-ink-soft hover:bg-paper-3 hover:text-ink transition-colors"
+          >
+            <Search className="size-4" />
+            <kbd className="hidden sm:inline rounded border border-ink/15 bg-paper-3 px-1 py-0.5 text-[10px] text-ink-mute">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+          </button>
 
-        <button
-          type="button"
-          onClick={cycleTheme}
-          aria-label={nextTheme === 'dark' ? t('nav.switchDark') : nextTheme === 'light' ? t('nav.switchLight') : t('nav.switchToSystem')}
-          className="flex items-center justify-center size-10 rounded-lg border-[2.5px] border-ink bg-paper-3 text-ink-soft hover:bg-ink/5 hover:text-ink transition-colors"
-        >
-          {themeIcon}
-        </button>
+          <div className="h-4 w-px bg-ink/15 mx-0.5" />
 
-        <AccountDropdown
-          showSignOut={!isDesktopApp}
-          settingsLabel={t('nav.settings')}
-          signOutLabel={t('nav.signOut')}
-          changeEmailLabel={t('auth.changeEmail')}
-          changePasswordLabel={t('auth.changePassword')}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onChangeEmail={() => setCredentialsMode('email')}
-          onChangePassword={() => setCredentialsMode('password')}
-        />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={resolvedDark ? t('nav.switchLight') : t('nav.switchDark')}
+            title={resolvedDark ? t('nav.switchLight') : t('nav.switchDark')}
+            className="flex size-8 items-center justify-center rounded-lg text-ink-soft hover:bg-paper-3 hover:text-ink transition-colors"
+          >
+            {themeIcon}
+          </button>
+
+          <div className="h-4 w-px bg-ink/15 mx-0.5" />
+
+          <AccountDropdown
+            showSignOut={!isDesktopApp}
+            settingsLabel={t('nav.settings')}
+            signOutLabel={t('nav.signOut')}
+            changeEmailLabel={t('auth.changeEmail')}
+            changePasswordLabel={t('auth.changePassword')}
+            onOpenSettings={() => setSettingsOpen(true)}
+            onChangeEmail={() => setCredentialsMode('email')}
+            onChangePassword={() => setCredentialsMode('password')}
+          />
+        </div>
       </div>
 
       {credentialsMode && (

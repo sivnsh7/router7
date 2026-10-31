@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api'
 import { copyText } from '@/lib/clipboard'
 import { toast } from '@/lib/toast'
 import { ClayButton } from '@/components/ui/clay-button'
+import { ClayInput } from '@/components/ui/clay-input'
 import { ConfirmButton } from '@/components/confirm-button'
 import { useI18n } from '@/i18n'
 
@@ -12,10 +13,30 @@ export function UnifiedKeySection() {
   const queryClient = useQueryClient()
   const [showKey, setShowKey] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [customKey, setCustomKey] = useState('')
 
   const { data, isError } = useQuery<{ apiKey: string }>({
     queryKey: ['unified-key'],
     queryFn: () => apiFetch('/api/settings/api-key'),
+  })
+
+  const updateKey = useMutation({
+    mutationFn: (newVal: string) =>
+      apiFetch<{ apiKey: string }>('/api/settings/api-key', {
+        method: 'PUT',
+        body: JSON.stringify({ apiKey: newVal }),
+      }),
+    onSuccess: (res) => {
+      queryClient.setQueryData<{ apiKey: string }>(['unified-key'], { apiKey: res.apiKey })
+      setShowKey(true)
+      setEditing(false)
+      toast.success(t('common.applied'))
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Failed to update key'
+      toast.error(msg)
+    },
   })
 
   const regenerate = useMutation({
@@ -76,11 +97,46 @@ export function UnifiedKeySection() {
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-xs text-destructive">
           {t('keys.serverUnreachableBefore')}<code className="font-mono">{baseUrl.replace('/v1', '')}</code>{t('keys.serverUnreachableAfter')}
         </div>
+      ) : editing ? (
+        <div className="flex items-center gap-2">
+          <ClayInput
+            value={customKey}
+            onChange={(e) => setCustomKey(e.target.value)}
+            className="flex-1 font-mono text-xs"
+            placeholder="router7-custom-api-key…"
+            autoFocus
+          />
+          <ClayButton
+            variant="default"
+            size="sm"
+            disabled={updateKey.isPending || customKey.trim().length < 8}
+            onClick={() => updateKey.mutate(customKey.trim())}
+          >
+            {t('common.save') || 'Save'}
+          </ClayButton>
+          <ClayButton
+            variant="outline"
+            size="sm"
+            onClick={() => setEditing(false)}
+          >
+            {t('common.cancel') || 'Cancel'}
+          </ClayButton>
+        </div>
       ) : (
         <div className="flex items-center gap-2">
           <code className="flex-1 font-mono text-xs bg-muted px-3 py-2 rounded-lg select-all truncate tabular-nums">
             {showKey ? apiKey : masked}
           </code>
+          <ClayButton
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setCustomKey(apiKey)
+              setEditing(true)
+            }}
+          >
+            Edit
+          </ClayButton>
           <ClayButton variant="outline" size="sm" onClick={() => setShowKey(!showKey)}>
             {showKey ? t('keys.hideKey') : t('keys.showKey')}
           </ClayButton>
