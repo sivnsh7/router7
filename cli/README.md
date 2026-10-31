@@ -60,8 +60,8 @@ storage as `router7_dashboard_token`). The unified `--api-key` /
 The CLI does not log in or persist the dashboard token.
 
 ```bash
-export FREELLMAPI_URL=http://localhost:3001
-export FREELLMAPI_DASHBOARD_TOKEN='<dashboard-session-token>'
+export ROUTER7_URL=http://localhost:3002
+export ROUTER7_DASHBOARD_TOKEN='<dashboard-session-token>'
 
 npx router7 keys add groq                 # hidden provider-key prompt
 npx router7 keys add groq --key '<key>'   # non-interactive alternative
@@ -88,7 +88,7 @@ checks, including its policy of disabling a key after repeated confirmed failure
 
 Keyless providers skip the prompt. Custom endpoints need a URL and model
 registration, so create them in the dashboard; existing custom keys can be
-listed, tested, and removed here. Requests accept `--url` / `FREELLMAPI_URL` and
+listed, tested, and removed here. Requests accept `--url` / `ROUTER7_URL` and
 `--timeout MS` (30,000 ms per request by default). `--dry-run` is not supported for
 `keys`; it is rejected before any request.
 
