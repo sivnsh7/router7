@@ -1,0 +1,188 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/space-grotesk";
+
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+--color-paper: var(--paper); --color-paper-2: var(--paper-2); --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink); --color-ink-soft: var(--ink-soft); --color-ink-mute: var(--ink-mute);
+  --color-red: var(--red); --color-red-dark: var(--red-dark); --color-red-tint: var(--red-tint);
+  --color-red-active: var(--red-active); --color-red-active-dark: var(--red-active-dark); --color-red-active-tint: var(--red-active-tint);
+  --color-clay: var(--clay); --color-clay-dark: var(--clay-dark); --color-clay-light: var(--clay-light); --color-clay-tint: var(--clay-tint);
+  --color-green: var(--green); --color-green-dark: var(--green-dark); --color-green-tint: var(--green-tint); --color-blue: var(--blue);
+  --color-background: var(--background); --color-foreground: var(--foreground); --color-card: var(--card); --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive); --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border); --color-input: var(--input); --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar); --color-sidebar-foreground: var(--sidebar-foreground); --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground); --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground); --color-sidebar-border: var(--sidebar-border); --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1); --color-chart-2: var(--chart-2); --color-chart-3: var(--chart-3); --color-chart-4: var(--chart-4); --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-body); --font-heading: var(--font-display); --font-mono: var(--font-code);
+  --radius-xs: 4px; --radius-sm: 8px; --radius-md: 14px; --radius-lg: 22px; --radius-xl: 22px; --radius-2xl: 22px; --radius-3xl: 22px;
+  --shadow-sh1: var(--sh-1); --shadow-sh2: var(--sh-2); --shadow-shhero: var(--sh-hero); --shadow-shpress: var(--sh-press);
+  --shadow-sm: var(--sh-press); --shadow-md: var(--sh-1); --shadow-lg: var(--sh-2); --shadow-xl: var(--sh-2);
+}
+:root {
+color-scheme: light;
+  --paper:#F1EBDC; --paper-2:#E6DCC4; --paper-3:#F9F5EA;
+  --ink:#211C15; --ink-soft:#4F4738; --ink-mute:#756A57;
+  --red:#7A3430; --red-dark:#5B2521; --red-tint:#E9DACE;
+  --clay:#9C7B3F; --clay-dark:#715A26; --clay-light:#C2A05E; --clay-tint:#EBE0C4;
+  --green:#35513F; --green-dark:#223A2B; --green-tint:#DFE6DC;
+  --red-active:#B23A2C; --red-active-dark:#7C2318; --red-active-tint:#F1DBCF; --blue:#33455E;
+  --font-body:"Space Grotesk Variable",system-ui,sans-serif;
+  --font-display:"Bricolage Grotesque Variable","Space Grotesk Variable",system-ui,sans-serif;
+  --font-code:ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --sh-1:3px 3px 0 var(--ink); --sh-2:6px 6px 0 var(--ink); --sh-hero:9px 9px 0 var(--ink); --sh-press:2px 2px 0 var(--ink);
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --r-pill:999px; --border-w:2.5px; --border-hair:1.5px;
+  --background:var(--paper); --foreground:var(--ink); --card:var(--paper-3); --card-foreground:var(--ink); --popover:var(--paper-3); --popover-foreground:var(--ink);
+  --primary:var(--red); --primary-foreground:var(--paper-3); --secondary:var(--paper-2); --secondary-foreground:var(--ink);
+  --muted:var(--paper-2); --muted-foreground:var(--ink-mute); --accent:var(--clay-tint); --accent-foreground:var(--ink);
+  --destructive:var(--red-active); --destructive-foreground:var(--paper-3);
+  --border:color-mix(in oklab,var(--ink) 22%,transparent); --input:color-mix(in oklab,var(--ink) 28%,transparent); --ring:var(--blue);
+  --chart-1:var(--ink); --chart-2:var(--red); --chart-3:var(--clay); --chart-4:var(--blue); --chart-5:var(--green);
+  --sidebar:var(--paper-2); --sidebar-foreground:var(--ink); --sidebar-primary:var(--red); --sidebar-primary-foreground:var(--paper-3);
+  --sidebar-accent:var(--clay-tint); --sidebar-accent-foreground:var(--ink); --sidebar-border:color-mix(in oklab,var(--ink) 26%,transparent); --sidebar-ring:var(--blue); --radius:14px;
+}
+.dark {
+color-scheme: dark;
+  --paper:#000000; --paper-2:#0A0908; --paper-3:#131110;
+  --ink:#F1E9D8; --ink-soft:#C9BFA9; --ink-mute:#948870;
+  --red:#E8382D; --red-dark:#FF9186; --red-tint:#2C0C09;
+  --clay:#FF5B47; --clay-dark:#FF8A76; --clay-light:#B32A1C; --clay-tint:#2E0F0A;
+  --green:#5BB87A; --green-dark:#8DE0A6; --green-tint:#0F2618;
+  --red-active:#FF5A45; --red-active-dark:#FFAE9C; --red-active-tint:#341008; --blue:#8FA8E8;
+  --background:var(--paper); --foreground:var(--ink); --card:var(--paper-3); --card-foreground:var(--ink); --popover:var(--paper-3); --popover-foreground:var(--ink);
+  --primary:var(--red); --primary-foreground:#211C15; --secondary:var(--paper-2); --secondary-foreground:var(--ink);
+  --muted:var(--paper-2); --muted-foreground:var(--ink-mute); --accent:var(--clay-tint); --accent-foreground:var(--ink);
+  --destructive:var(--red-active); --destructive-foreground:#211C15;
+  --border:color-mix(in oklab,var(--ink) 22%,transparent); --input:color-mix(in oklab,var(--ink) 28%,transparent); --ring:var(--blue);
+  --chart-1:var(--ink); --chart-2:var(--red); --chart-3:var(--clay); --chart-4:var(--blue); --chart-5:var(--green);
+  --sidebar:var(--paper-2); --sidebar-foreground:var(--ink); --sidebar-primary:var(--red); --sidebar-primary-foreground:#211C15;
+  --sidebar-accent:var(--clay-tint); --sidebar-accent-foreground:var(--ink); --sidebar-border:color-mix(in oklab,var(--ink) 24%,transparent); --sidebar-ring:var(--blue);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    html {
+        @apply font-sans antialiased;
+        font-feature-settings: 'ss01', 'cv11';
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: 'ss01', 'cv11', 'tnum';
+    }
+    /* Desktop shell: on macOS where the window has native sidebar vibrancy,
+       let the vibrancy show through a translucent backdrop so the
+       dashboard reads as real glass, like the tray popover. Cards and
+       popovers stay opaque on top. On Windows and Linux, keep the solid
+       background so contrast and legibility are preserved. */
+    html.desktop.desktop-mac body {
+        background-color: transparent;
+    }
+    html.desktop.desktop-mac .desktop-backdrop {
+        background-color: color-mix(in oklab, var(--background) 55%, transparent);
+    }
+    code, pre, kbd, samp {
+        font-family: var(--font-mono);
+        font-feature-settings: 'ss02', 'ss03';
+    }
+    /* Tabular numerals on any element that opts in */
+    .tabular-nums {
+        font-variant-numeric: tabular-nums;
+    }
+    /* Tighter focus ring across inputs */
+    input, textarea, select {
+        font-feature-settings: 'ss01';
+    }
+}
+
+
+/* SIVNSH7 / Router7 shared visual language. */
+body{position:relative;isolation:isolate;background-color:var(--paper);color:var(--ink)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.12;background-image:radial-gradient(color-mix(in srgb,var(--ink) 10%,transparent) .45px,transparent .6px);background-size:3px 3px,4px 4px}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.08;background-image:radial-gradient(color-mix(in srgb,var(--ink) 8%,transparent) .35px,transparent .5px);background-size:2px 2px,3px 3px}
+.dark body::before{opacity:.06;mix-blend-mode:screen;background-image:radial-gradient(color-mix(in srgb,var(--ink) 6%,transparent) .4px,transparent .55px);background-size:3px 3px,4px 4px}
+.dark body::after{opacity:.04;mix-blend-mode:screen;background-image:radial-gradient(color-mix(in srgb,var(--ink) 5%,transparent) .3px,transparent .45px);background-size:2px 2px,3px 3px}
+#root{position:relative;z-index:1;min-height:100dvh}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.lbl{color:var(--ink-mute);font-family:var(--font-code);font-size:.68rem;font-weight:650;letter-spacing:.12em;line-height:1.3;text-transform:uppercase}
+.stamp{display:inline-flex;align-items:center;gap:.4rem;width:fit-content;border:var(--border-w) solid currentColor;border-radius:var(--r-sm);padding:.32em .75em;font:600 .65rem/1.25 var(--font-code);letter-spacing:.08em;text-transform:uppercase}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
+.dark .live-dot{background:var(--green-dark)}
+.stamp--live{color:var(--green-dark);background:var(--green-tint);border-color:var(--green)}
+.stamp--wip,.stamp--probable{color:var(--clay-dark);background:var(--clay-tint);border-color:var(--clay)}
+.stamp--confirmed{color:var(--red-active-dark);background:var(--red-active-tint);border-color:var(--red-active)}
+.stamp--hypothesis{color:var(--red-dark);background:var(--red-tint);border-color:var(--red)}
+.proof{display:grid;gap:.25rem;padding:.75rem 1rem;border:var(--border-w) solid var(--ink);border-radius:var(--r-md);background:var(--paper-3);box-shadow:var(--sh-1)}
+.proof__n{color:var(--ink);font-size:clamp(1.4rem,3vw,2rem);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.proof__l{color:var(--ink-mute);font:600 .65rem/1.3 var(--font-code);letter-spacing:.1em;text-transform:uppercase}
+.redact{display:inline-block;border-radius:2px;background:var(--ink);color:transparent;user-select:none}
+.rule-redact{position:relative;height:1.5px;background:var(--ink)}
+.rule-redact::after{content:"";position:absolute;inset-block-start:-2px;inset-inline-start:44%;width:3.5rem;height:5.5px;background:var(--red)}
+.rounded-3xl.border.bg-card,.rounded-3xl.border.bg-paper-3{border:var(--border-w) solid var(--ink);border-radius:var(--r-md);box-shadow:var(--sh-2)}
+.rounded-2xl.border.bg-card,.rounded-2xl.border.bg-paper-3{border:2px solid var(--ink);border-radius:var(--r-md);box-shadow:var(--sh-1)}
+.reveal{opacity:1;transform:none}
+.js-reveal .reveal:not(.in){opacity:0;transform:translateY(14px)}
+.reveal.in{animation:r7-reveal-in 520ms cubic-bezier(.22,.68,0,1) both}
+.reveal.in[style*="--animation-delay"]{animation-delay:var(--animation-delay)}
+@keyframes r7-reveal-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scroll-progress{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal,.reveal.in{opacity:1!important;transform:none!important;animation:none!important}}
+
+/* ── Syntax highlighting (highlight.js spans, see lib/highlight.ts) ─────────
+   One restrained palette per theme: keywords and tags carry the accent,
+   strings warm, comments recede, everything else stays the text colour. */
+.code-highlight { color: var(--foreground); }
+.code-highlight .hljs-comment, .code-highlight .hljs-quote { color: oklch(0.55 0 0); font-style: italic; }
+.code-highlight .hljs-keyword, .code-highlight .hljs-selector-tag, .code-highlight .hljs-built_in,
+.code-highlight .hljs-type, .code-highlight .hljs-literal, .code-highlight .hljs-doctag,
+.code-highlight .hljs-meta { color: oklch(0.45 0.18 290); }
+.code-highlight .hljs-tag, .code-highlight .hljs-name, .code-highlight .hljs-selector-class,
+.code-highlight .hljs-selector-id, .code-highlight .hljs-section, .code-highlight .hljs-title { color: oklch(0.48 0.16 250); }
+.code-highlight .hljs-attr, .code-highlight .hljs-attribute, .code-highlight .hljs-variable,
+.code-highlight .hljs-template-variable, .code-highlight .hljs-property, .code-highlight .hljs-params { color: oklch(0.5 0.12 45); }
+.code-highlight .hljs-string, .code-highlight .hljs-regexp, .code-highlight .hljs-addition,
+.code-highlight .hljs-template-tag, .code-highlight .hljs-symbol, .code-highlight .hljs-bullet { color: oklch(0.5 0.14 150); }
+.code-highlight .hljs-number, .code-highlight .hljs-link { color: oklch(0.5 0.15 25); }
+.code-highlight .hljs-deletion { color: oklch(0.5 0.18 25); }
+.code-highlight .hljs-emphasis { font-style: italic; }
+.code-highlight .hljs-strong { font-weight: 600; }
+.dark .code-highlight .hljs-comment, .dark .code-highlight .hljs-quote { color: oklch(0.6 0 0); }
+.dark .code-highlight .hljs-keyword, .dark .code-highlight .hljs-selector-tag, .dark .code-highlight .hljs-built_in,
+.dark .code-highlight .hljs-type, .dark .code-highlight .hljs-literal, .dark .code-highlight .hljs-doctag,
+.dark .code-highlight .hljs-meta { color: oklch(0.78 0.12 290); }
+.dark .code-highlight .hljs-tag, .dark .code-highlight .hljs-name, .dark .code-highlight .hljs-selector-class,
+.dark .code-highlight .hljs-selector-id, .dark .code-highlight .hljs-section, .dark .code-highlight .hljs-title { color: oklch(0.78 0.11 240); }
+.dark .code-highlight .hljs-attr, .dark .code-highlight .hljs-attribute, .dark .code-highlight .hljs-variable,
+.dark .code-highlight .hljs-template-variable, .dark .code-highlight .hljs-property, .dark .code-highlight .hljs-params { color: oklch(0.8 0.1 60); }
+.dark .code-highlight .hljs-string, .dark .code-highlight .hljs-regexp, .dark .code-highlight .hljs-addition,
+.dark .code-highlight .hljs-template-tag, .dark .code-highlight .hljs-symbol, .dark .code-highlight .hljs-bullet { color: oklch(0.78 0.12 150); }
+.dark .code-highlight .hljs-number, .dark .code-highlight .hljs-link { color: oklch(0.78 0.12 30); }
+.dark .code-highlight .hljs-deletion { color: oklch(0.7 0.16 25); }
+
+
+/* Shared paper controls and data surfaces for the legacy component inventory. */
+input.border-input, textarea.border-input, select.border-input, [role="combobox"].border-input {
+  border-width: 1.5px; border-color: var(--input); background-color: var(--paper-2); color: var(--ink);
+}
+/* Only pill-shape explicit "pill" badges; stamps and chips keep their own radius. */
+[data-slot="badge"].badge-pill { border-radius: 999px; font-family: var(--font-code); letter-spacing: .02em; }
+[data-slot="table-container"] { overflow-x: auto; border: var(--border-w) solid var(--ink); border-radius: var(--r-md); background: var(--paper-3); box-shadow: var(--sh-1); }
+[data-slot="table"] { color: var(--ink); }
+[data-slot="table-header"] { background: var(--paper-2); color: var(--ink-mute); }
+[data-slot="table-row"] { border-color: var(--border); }
+[data-slot="table-row"]:hover { background: color-mix(in oklab, var(--clay-tint) 62%, transparent); }
+[data-slot="card"] { color: var(--ink); }
