@@ -1,6 +1,6 @@
 {
   "name": "router7",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Set up coding agents to use a Router7 gateway",
   "license": "MIT",
   "repository": {

@@ -16,6 +16,12 @@
 
 [Key Features](#-key-features) · [Quick Start](#-quick-start) · [Authentication & Access Modes](#-authentication--access-modes) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Supported Providers](#-supported-providers) · [Coding Agents & IDEs](#-coding-agents--ide-integrations) · [CLI Toolchain](#-cli-toolchain) · [Contributing](#-contributing)
 
+<br/><br/>
+
+<a href="https://github.com/sivnsh7/router7">
+  <img src="https://raw.githubusercontent.com/sivnsh7/router7/main/repo-assets/router7-dashboard.png" alt="Router7 Model Index & Intelligent Routing Strategy Console" width="100%" style="border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);" />
+</a>
+
 </div>
 
 ---

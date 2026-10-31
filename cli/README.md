@@ -1,5 +1,11 @@
 # router7
 
+<div align="center">
+  <a href="https://github.com/sivnsh7/router7">
+    <img src="https://raw.githubusercontent.com/sivnsh7/router7/main/repo-assets/router7-dashboard.png" alt="Router7 Model Index & Intelligent Routing Strategy Console" width="100%" />
+  </a>
+</div>
+
 Point your coding agent at a [Router7](https://github.com/sivnsh7/router7)
 gateway in one command. The generators read the models your server is actually
 serving and write the config file each tool expects.
