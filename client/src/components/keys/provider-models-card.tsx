@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Cpu, Search, Sparkles, Zap, Eye, Wrench, Brain } from 'lucide-react'
+import { Cpu, Search, Sparkles, Zap, Eye, Wrench, Brain, RefreshCw } from 'lucide-react'
 import { ClayButton } from '@/components/ui/clay-button'
 import { Switch } from '@/components/ui/switch'
 import { apiFetch } from '@/lib/api'
@@ -67,6 +67,64 @@ export function ProviderModelsCard({
     },
   })
 
+  // Fetch and update models automatically from provider endpoint
+  const fetchModels = useMutation({
+    mutationFn: () =>
+      apiFetch<{
+        success: boolean
+        platform: string
+        totalDiscovered: number
+        addedCount: number
+        updatedCount: number
+        existingCount: number
+        addedModels: string[]
+      }>('/api/keys/fetch-models', {
+        method: 'POST',
+        body: JSON.stringify({ platform, keyId }),
+      }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['models'] })
+      queryClient.invalidateQueries({ queryKey: ['keys'] })
+      queryClient.invalidateQueries({ queryKey: ['fallback'] })
+      if (data.addedCount > 0 || data.updatedCount > 0) {
+        toast.success(
+          `Synced ${data.totalDiscovered} models: ${data.addedCount} new registered, ${data.updatedCount} updated.`
+        )
+      } else {
+        toast.info(`Synced ${data.totalDiscovered} models from endpoint. All up to date.`)
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to fetch models from endpoint')
+    },
+  })
+
+  // Auto-sync status for this provider/endpoint
+  const { data: autoSyncData } = useQuery<{ enabled: boolean }>({
+    queryKey: ['provider-auto-sync', platform, keyId],
+    queryFn: () => apiFetch(`/api/keys/auto-sync/${platform}${keyId ? `?keyId=${keyId}` : ''}`),
+    staleTime: 30000,
+  })
+
+  const toggleAutoSync = useMutation({
+    mutationFn: (enabled: boolean) =>
+      apiFetch<{ success: boolean; enabled: boolean }>(`/api/keys/auto-sync/${platform}`, {
+        method: 'POST',
+        body: JSON.stringify({ enabled, keyId }),
+      }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['provider-auto-sync', platform, keyId] })
+      toast.success(
+        data.enabled
+          ? `Auto-sync enabled for ${platform}. Models will auto-refresh via endpoint.`
+          : `Auto-sync disabled for ${platform}.`
+      )
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to update auto-sync setting')
+    },
+  })
+
   // Test single model
   const runModelTest = async (model: Model) => {
     setModelTestState(prev => ({ ...prev, [model.id]: { loading: true } }))
@@ -110,10 +168,24 @@ export function ProviderModelsCard({
           <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-paper border border-ink/20 text-ink-mute">
             {platformModels.length}
           </span>
+          {/* Auto-Sync Toggle Option */}
+          <label
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-paper border border-ink/20 cursor-pointer hover:border-ink/40 transition-colors select-none"
+            title="Automatically sync and update models through the provider's /models endpoint on health checks and hourly cycles"
+          >
+            <span className="font-mono text-[9px] font-semibold text-ink-mute uppercase tracking-tight">Auto-Sync</span>
+            <Switch
+              size="sm"
+              checked={autoSyncData?.enabled ?? false}
+              disabled={toggleAutoSync.isPending}
+              onCheckedChange={(checked) => toggleAutoSync.mutate(checked)}
+              aria-label="Toggle auto-sync models from endpoint"
+            />
+          </label>
         </div>
 
-        {/* Thinking Level Selector & Add Model */}
-        <div className="flex items-center gap-2">
+        {/* Thinking Level Selector, Fetch Models & Add Model */}
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-paper border border-ink/20 rounded-md px-1.5 py-0.5">
             <Brain className="size-3 text-clay" />
             <select
@@ -133,6 +205,19 @@ export function ProviderModelsCard({
               <option value="max">Thinking: Max</option>
             </select>
           </div>
+
+          {/* Fetch & Update Button */}
+          <ClayButton
+            size="xs"
+            variant="clay-secondary"
+            onClick={() => fetchModels.mutate()}
+            disabled={fetchModels.isPending || !hasActiveKey}
+            title={hasActiveKey ? "Fetch and update models automatically from provider endpoint" : "Requires active configured key"}
+            className="flex items-center gap-1 text-[11px]"
+          >
+            <RefreshCw className={`size-3 ${fetchModels.isPending ? 'animate-spin text-clay' : ''}`} />
+            <span>{fetchModels.isPending ? 'Syncing...' : 'Fetch & Update'}</span>
+          </ClayButton>
 
           <ClayButton
             size="xs"
@@ -163,16 +248,32 @@ export function ProviderModelsCard({
       {/* Models List */}
       <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
         {filteredModels.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center text-ink-mute space-y-2">
+          <div className="flex flex-col items-center justify-center p-6 text-center text-ink-mute space-y-3">
             <Cpu className="size-8 stroke-1 text-ink-mute/50" />
             <p className="text-xs font-mono">
               {platformModels.length === 0 ? 'No models registered yet.' : 'No models match filter.'}
             </p>
-            {onDiscoverModels && (
-              <ClayButton size="xs" onClick={onDiscoverModels}>
-                Discover Models
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {hasActiveKey && (
+                <ClayButton
+                  size="xs"
+                  onClick={() => fetchModels.mutate()}
+                  disabled={fetchModels.isPending}
+                  className="flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`size-3 ${fetchModels.isPending ? 'animate-spin' : ''}`} />
+                  <span>{fetchModels.isPending ? 'Fetching Models...' : 'Fetch Models from Endpoint'}</span>
+                </ClayButton>
+              )}
+              {onDiscoverModels && (
+                <ClayButton size="xs" variant="clay-secondary" onClick={onDiscoverModels}>
+                  Browse Endpoint Models
+                </ClayButton>
+              )}
+              <ClayButton size="xs" variant="clay-secondary" onClick={onAddModel}>
+                Add Manually
               </ClayButton>
-            )}
+            </div>
           </div>
         ) : (
           filteredModels.map((m) => {

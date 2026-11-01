@@ -34,6 +34,11 @@ import type { Db } from '../db/types.js';
 import type { Platform } from '@router7/shared/types.js';
 import { parseModelScope } from '../lib/model-scope.js';
 import { KEY_PROXY_URL_ERROR, KEY_PROXY_URL_MAX, decryptProxyUrl, encryptProxyUrl, isValidKeyProxyUrl, maskProxyUrl } from '../lib/key-proxy.js';
+import {
+  fetchAndUpdateProviderModels,
+  isProviderAutoSyncEnabled,
+  setProviderAutoSync,
+} from '../services/provider-model-sync.js';
 
 export const keysRouter = Router();
 
@@ -460,6 +465,47 @@ keysRouter.delete('/platform/:platform/cooldowns', (req: Request, res: Response)
     totalCleared += clearCooldownsForKey(k.id);
   }
   res.json({ cleared: totalCleared, keysCount: keys.length });
+});
+
+const fetchModelsSchema = z.object({
+  platform: z.string().trim().min(1),
+  keyId: z.number().int().positive().optional(),
+});
+
+// Fetch and update models automatically through the provider's /models endpoint
+keysRouter.post('/fetch-models', async (req: Request, res: Response) => {
+  const parsed = fetchModelsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: { message: parsed.error.errors.map(e => e.message).join(', ') } });
+    return;
+  }
+  try {
+    const result = await fetchAndUpdateProviderModels(getDb(), parsed.data.platform, parsed.data.keyId);
+    res.json(result);
+  } catch (err: any) {
+    if (err instanceof ModelDiscoveryError) {
+      res.status(err.status).json({ error: { message: err.message, type: 'upstream_error' } });
+      return;
+    }
+    res.status(502).json({ error: { message: err?.message ?? 'Failed to fetch models from provider endpoint' } });
+  }
+});
+
+// Get auto-sync status for a provider
+keysRouter.get('/auto-sync/:platform', (req: Request, res: Response) => {
+  const platform = String(req.params.platform);
+  const keyId = req.query.keyId ? Number(req.query.keyId) : undefined;
+  const enabled = isProviderAutoSyncEnabled(getDb(), platform, keyId);
+  res.json({ platform, keyId, enabled });
+});
+
+// Set auto-sync status for a provider
+keysRouter.post('/auto-sync/:platform', (req: Request, res: Response) => {
+  const platform = String(req.params.platform);
+  const keyId = req.body?.keyId ? Number(req.body.keyId) : undefined;
+  const enabled = Boolean(req.body?.enabled);
+  setProviderAutoSync(getDb(), platform, enabled, keyId);
+  res.json({ success: true, platform, keyId, enabled });
 });
 
 // Clear every active cooldown for one key. An escalated cooldown can bench a key

@@ -495,7 +495,7 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
                       platform={group.value}
                       keyId={group.keys[0]?.id}
                       onAddModel={() => setAddModelTarget({ platform: group.value, keyId: group.keys[0]?.id })}
-                      onDiscoverModels={group.keys[0]?.modelDiscovery ? () => setDiscoverTarget({ keyId: group.keys[0].id, builtin: group.value !== 'custom' }) : undefined}
+                      onDiscoverModels={group.keys[0] ? () => setDiscoverTarget({ keyId: group.keys[0].id, builtin: group.value !== 'custom' }) : undefined}
                       hasActiveKey={group.keys.some(k => k.enabled && statusOf(k) === 'healthy')}
                     />
                   </div>
