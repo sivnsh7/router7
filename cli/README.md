@@ -1,4 +1,4 @@
-# router7
+# router7 (r7)
 
 <div align="center">
   <a href="https://github.com/sivnsh7/router7">
@@ -6,148 +6,100 @@
   </a>
 </div>
 
-Point your coding agent at a [Router7](https://github.com/sivnsh7/router7)
-gateway in one command. The generators read the models your server is actually
-serving and write the config file each tool expects.
+**Router7** is an intelligent multi-provider AI Gateway and resilient failover orchestrator with an interactive Web GUI Dashboard.
 
-## 🚀 Installation & Shell Aliases
+Running **`r7`** or **`router7`** boots the gateway server and immediately launches the web dashboard in your browser. All configuration—provider API keys, model routing, coding agent adapters, fallback chains, and real-time logs—is managed entirely through the GUI!
 
-### Option 1: Global Install via NPM (Recommended)
-Install globally to get the **`router7`** executable and the built-in **`r7`** short alias in your `$PATH`:
+---
+
+## ⚡ Quick Start
+
+### 1. Global Installation (Recommended)
+Install globally to get the **`r7`** and **`router7`** commands anywhere in your terminal:
 
 ```bash
 npm install -g router7
 ```
 
-Once installed, you can run either command anywhere:
+Now start the server and open the dashboard with a single command:
 ```bash
-# Using the full command:
-router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+# Using the short alias:
+r7
 
-# Or using the short alias:
-r7 setup-claude --url http://localhost:3002 --api-key <your-key>
+# Or using the full name:
+router7
 ```
 
-### Option 2: Zero-Install via `npx`
+### 2. Zero-Install via `npx`
 Run directly without installing:
 
 ```bash
-npx router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+npx router7
 ```
 
-### Option 3: Permanent Shell Aliases (Bash / Zsh)
-To create permanent `router7` and `r7` aliases for `npx router7`, add this snippet to your `~/.bashrc` or `~/.zshrc`:
+### 3. Permanent Shell Aliases (Bash / Zsh)
+Add the `r7` and `router7` aliases to your shell configuration (`~/.bashrc` or `~/.zshrc`):
 
 ```bash
-# Add Router7 CLI aliases
+echo "alias r7='npx router7'" >> ~/.bashrc
 echo "alias router7='npx router7'" >> ~/.bashrc
-echo "alias r7='router7'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-*(For Zsh users, replace `.bashrc` with `.zshrc`)*.
+---
 
-No account needed. The unified API key comes from your Router7
-dashboard (or the tray popover in the desktop app).
-
-## Commands
-
-| Command | Tool |
-| --- | --- |
-| `setup-claude` | Claude Code |
-| `setup-codex` | Codex CLI |
-| `setup-cline` | Cline |
-| `setup-continue` | Continue |
-| `setup-aider` | Aider |
-| `setup-opencode` | OpenCode |
-| `setup-goose` | Goose |
-| `setup-qwen` | Qwen Code |
-| `setup-roo` | Roo Code |
-| `setup-kilo` | Kilo Code |
-| `setup-crush` | Crush |
-| `setup-dsh` | DeepSeek Harness (`dsh`) |
-| `setup-mimo` | MiMo Code (`mimo`) |
-| `setup-atomcode` | AtomCode (`atomcode`) |
-| `setup-openclaw` | OpenClaw |
-| `setup-hermes` | Hermes Agent (`hermes`) |
-| `setup-cursor` | Cursor |
-| `setup-generic` | Any OpenAI-compatible client |
-| `launch` | Run Claude Code with credentials injected into the child process |
-| `launch-codex` | Run Codex the same way |
-| `list` | Print the supported tools and their base URLs |
-| `keys` | Add, list, remove, or test provider keys (`keys --help`) |
-
-## Options
-
-| Flag | Meaning |
-| --- | --- |
-| `--url URL` | Gateway base URL (default `http://localhost:3001`) |
-| `--api-key KEY` | Unified API key |
-| `--profile NAME` | Name the generated profile/provider entry |
-| `--model ID` | Pin a specific model instead of the catalog default |
-| `--dry-run` | Print the diff and write nothing |
-
-`ROUTER7_URL` and `ROUTER7_API_KEY` (or legacy `FREELLMAPI_URL` / `FREELLMAPI_API_KEY`) work in place of `--url` / `--api-key`.
-
-## Provider keys
-
-The `keys` commands use a **dashboard session token**. Set
-`ROUTER7_DASHBOARD_TOKEN` (or `FREELLMAPI_DASHBOARD_TOKEN`), or pass `--token TOKEN` to override it. This is the
-session returned by dashboard sign-in or registration (stored in the signed-in browser's local
-storage as `router7_dashboard_token`). The unified `--api-key` /
-`ROUTER7_API_KEY` used by coding agents cannot authenticate these administrative commands.
-The CLI does not log in or persist the dashboard token.
+## 🖥️ Usage & CLI Options
 
 ```bash
-export ROUTER7_URL=http://localhost:3002
-export ROUTER7_DASHBOARD_TOKEN='<dashboard-session-token>'
-
-npx router7 keys add groq                 # hidden provider-key prompt
-npx router7 keys add groq --key '<key>'   # non-interactive alternative
-npx router7 keys list
-npx router7 keys test groq                # check every stored Groq key
-npx router7 keys test groq --id 7         # check one key
-npx router7 keys remove groq --id 7
+r7 [options]
 ```
 
-`keys list` prints each key's ID, platform, enabled chat model count,
-enabled/disabled state, and stored health status. Counts respect the key's model
-scope; custom keys count models registered to their endpoint. Credentials and
-masked keys are never printed. Use the IDs from this list when a platform has
-multiple keys: `remove` requires `--id` in that case, and also checks that the ID
-belongs to the requested platform. With one matching key, `--id` is optional.
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `-p, --port <port>` | Port to run the server on | `3002` (or `$PORT`) |
+| `-h, --host <host>` | Host address to bind to | `127.0.0.1` (or `$HOST`) |
+| `--no-open` | Start server without auto-opening browser | `false` |
+| `-v, --version` | Print current Router7 version | |
+| `--help` | Show usage options | |
 
-`add` saves the key and immediately validates it through the gateway. A failed or
-inconclusive check exits with code 1 and **leaves the key saved** for later testing
-or removal. `test` also exits with code 1 if any selected key is not healthy or the
-gateway cannot confirm its validity (for example, after a provider network
-failure). Successful commands exit with code 0; argument, authentication, and
-request errors exit with code 1. Validation uses the gateway's usual health
-checks, including its policy of disabling a key after repeated confirmed failures.
+### Examples
 
-Keyless providers skip the prompt. Custom endpoints need a URL and model
-registration, so create them in the dashboard; existing custom keys can be
-listed, tested, and removed here. Requests accept `--url` / `ROUTER7_URL` and
-`--timeout MS` (30,000 ms per request by default). `--dry-run` is not supported for
-`keys`; it is rejected before any request.
+```bash
+# Start server on default port (3002) and open browser
+r7
 
-## Safety
+# Start on a custom port
+r7 --port 8080
 
-Every generator is non-destructive: it merges into your existing configuration
-rather than replacing it, and takes a timestamped backup before touching a file
-that already exists. `--dry-run` shows the exact diff first.
+# Run in background / headless mode (e.g. VPS or server)
+r7 --no-open --host 0.0.0.0 --port 3002
+```
 
-The two `launch` commands never write credentials to disk at all — they inject
-them into the child process environment for that run only.
+---
 
-## Requirements
+## 🌐 Endpoints Served
 
-Node.js >= 20.18. A running Router7 gateway
-([install guide](https://github.com/sivnsh7/router7/blob/main/docs/en/install/01-install.md)).
+Once started, Router7 exposes the unified API surfaces and the web console:
 
-## Links
+- **Web Dashboard**: `http://localhost:3002`
+- **OpenAI Proxy**: `http://localhost:3002/v1/chat/completions`
+- **Anthropic Wire**: `http://localhost:3002/v1/messages` (Claude Code drop-in)
+- **Google Gemini**: `http://localhost:3002/v1beta`
+- **Health Check**: `http://localhost:3002/api/ping`
 
-- [Clients & coding agents guide](https://github.com/sivnsh7/router7/blob/main/docs/en/clients/01-agent-clients.md)
-- [Issue tracker](https://github.com/sivnsh7/router7/issues)
+---
 
-MIT © Tashfeen Ahmed
+## 🎨 100% GUI-Driven Management
+
+No complicated CLI flags or config editing required. The interactive dashboard handles:
+- **Keys Vault**: Add, encrypt, and monitor API keys for OpenAI, Anthropic, Gemini, Groq, Cerebras, DeepSeek, Mistral, Ollama, and 30+ providers.
+- **Client Adapters**: One-click copy instructions and configs for Claude Code, Codex, Cline, Cursor, Continue, and Aider.
+- **Dynamic Routing**: Switch between Fastest, Smartest, Balanced, Most Reliable, and Custom weighted routing strategies.
+- **Ensemble Composer & Fusion**: Multi-model synthesis and consensus judging.
+- **Real-Time Logs & Observability**: Stream live execution requests, latency breakdowns, and fallback events.
+
+---
+
+## 📜 License
+
+MIT © [Shivansh (sivnsh7)](https://github.com/sivnsh7)

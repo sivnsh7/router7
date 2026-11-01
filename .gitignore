@@ -29,3 +29,5 @@ update-hermes.sh
 # Monetization planning — private, never committed
 monetization/
 *.zip
+cli/server-dist/
+cli/client-dist/

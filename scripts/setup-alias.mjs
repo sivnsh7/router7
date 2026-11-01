@@ -44,6 +44,6 @@ if (fs.existsSync(targetRc)) {
 }
 
 console.log('\nRouter7 aliases are configured!');
-console.log('You can now use:');
-console.log('  router7 --help');
-console.log('  r7 --help');
+console.log('You can now start the server and open the dashboard with:');
+console.log('  r7');
+console.log('  router7');

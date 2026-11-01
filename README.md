@@ -14,7 +14,7 @@
 
 ---
 
-[Key Features](#-key-features) · [Quick Start](#-quick-start) · [Authentication & Access Modes](#-authentication--access-modes) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Supported Providers](#-supported-providers) · [Coding Agents & IDEs](#-coding-agents--ide-integrations) · [CLI Toolchain](#-cli-toolchain) · [Contributing](#-contributing)
+[Key Features](#-key-features) · [Quick Start](#-quick-start) · [Start Server & GUI (`r7`)](#-start-server--gui-dashboard-r7--router7) · [Authentication & Access Modes](#-authentication--access-modes) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Supported Providers](#-supported-providers) · [Coding Agents & IDEs](#-coding-agents--ide-integrations) · [Contributing](#-contributing)
 
 <br/><br/>
 
@@ -156,85 +156,81 @@ Router7 connects out of the box to 35+ inference providers:
 
 ## 🛠️ Coding Agents & IDE Integrations
 
-Router7 includes pre-built integration recipes and auto-config generators for modern coding assistants:
+Router7 is **100% GUI-driven**. All integrations, model mappings, and configuration files are generated with a single click inside the **Client Adapters** page on the dashboard:
 
-| Agent / Tool | Setup Command | Target Wire |
+| Agent / Tool | Dashboard Integration | Target Wire |
 |---|---|---|
-| **Claude Code** | `npx router7 setup-claude --url http://localhost:3002 --api-key <KEY>` | `/v1/messages` (Native Anthropic) |
+| **Claude Code** | 1-click config generator under Client Adapters | `/v1/messages` (Native Anthropic) |
 | **Cursor** | Point `OpenAI Base URL` to `http://localhost:3002/v1` | `/v1/chat/completions` |
-| **Codex CLI** | `npx router7 setup-codex --url http://localhost:3002 --api-key <KEY>` | `/v1/responses` |
-| **Cline / Roo Code** | `npx router7 setup-cline --url http://localhost:3002 --api-key <KEY>` | `/v1` |
-| **Aider** | `npx router7 setup-aider --url http://localhost:3002 --api-key <KEY>` | `/v1` |
-| **Continue** | `npx router7 setup-continue --url http://localhost:3002 --api-key <KEY>` | `/v1` |
-| **OpenCode** | `npx router7 setup-opencode --url http://localhost:3002 --api-key <KEY>` | `/v1` |
-| **Goose** | `npx router7 setup-goose --url http://localhost:3002 --api-key <KEY>` | `/v1` |
+| **Codex CLI** | Dedicated Codex configuration preset | `/v1/responses` |
+| **Cline / Roo Code** | OpenAI-compatible custom endpoint config | `/v1` |
+| **Aider** | Copy-paste startup flags or `.aider.conf.yml` | `/v1` |
+| **Continue** | Instant `config.json` model snippet generator | `/v1` |
+| **OpenCode / Goose** | Universal OpenAI provider endpoint | `/v1` |
 
 ---
 
-## 📦 CLI Toolchain & Shell Aliases
+## ⚡ Start Server & GUI Dashboard (`r7` / `router7`)
 
-Manage your gateway and configure coding agents using the official `router7` CLI.
+Router7 provides the **`r7`** command (and full alias **`router7`**) to start the gateway server and immediately launch the web dashboard in your default browser.
 
 ### 1. Global Installation (Recommended)
-Install globally to get the **`router7`** executable and built-in **`r7`** short alias:
+Install globally to get `r7` and `router7` in your terminal:
 
 ```bash
 npm install -g router7
 ```
 
-Once installed, use either command anywhere in your terminal:
-
+Now start the server and open the web dashboard:
 ```bash
-# Using the full command:
-router7 --help
-router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+# Start with short alias:
+r7
 
-# Or using the short alias:
-r7 doctor --url http://localhost:3002
-r7 keys list --url http://localhost:3002 --token <DASHBOARD_TOKEN>
+# Or with full command:
+router7
 ```
 
 ### 2. Zero-Install via `npx`
 Run directly without installing:
 
 ```bash
-npx router7 --help
-npx router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+npx router7
 ```
 
 ### 3. Permanent Shell Aliases (Bash / Zsh)
-To configure permanent `router7` and `r7` aliases for your shell:
+Add the `r7` and `router7` aliases to your shell configuration (`~/.bashrc` or `~/.zshrc`):
 
 ```bash
 # Append aliases to your shell configuration:
+echo "alias r7='npx router7'" >> ~/.bashrc
 echo "alias router7='npx router7'" >> ~/.bashrc
-echo "alias r7='router7'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
 *(For Zsh users, replace `.bashrc` with `.zshrc`)*.
 
-### 4. Setup Aliases From Cloned Repo
-If you cloned the repository locally, run the built-in alias setup helper:
+### 4. Running From Source / Local Clone
+If you cloned the repository locally:
 
 ```bash
+# Configure local r7 alias:
 npm run setup:alias
+
+# Start the server and launch the GUI dashboard:
+npm start
 # or:
-./scripts/setup-alias.sh
+r7
 ```
 
----
+### CLI Options
 
-### Key Commands
-
-```bash
-# Inspect gateway health and active models:
-router7 doctor --url http://localhost:3002
-
-# Manage keys directly from your terminal:
-router7 keys list --url http://localhost:3002 --token <DASHBOARD_TOKEN>
-router7 keys test groq --url http://localhost:3002 --token <DASHBOARD_TOKEN>
-```
+| Flag | Meaning | Default |
+|---|---|---|
+| `-p, --port <port>` | Port to listen on | `3002` (or `$PORT`) |
+| `-h, --host <host>` | Host interface to bind to | `127.0.0.1` (or `$HOST`) |
+| `--no-open` | Start server in headless mode (don't open browser) | `false` |
+| `-v, --version` | Display current version | |
+| `--help` | Show usage options | |
 
 ---
 
