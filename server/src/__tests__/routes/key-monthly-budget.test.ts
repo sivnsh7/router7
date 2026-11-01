@@ -54,7 +54,7 @@ describe('monthly budget exhaustion on inference endpoints', () => {
   it('enforces the budget on multipart transcription requests', async () => {
     const body = new FormData();
     body.set('model', 'budget-transcription');
-    body.set('file', new Blob(['synthetic audio'], { type: 'audio/wav' }), 'test.wav');
+    body.set('file', new Blob(['RIFF....WAVEfmt '], { type: 'audio/wav' }), 'test.wav');
     const res = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
       method: 'POST', headers: { Authorization: `Bearer ${token}` }, body,
     });

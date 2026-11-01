@@ -500,7 +500,9 @@ anthropicRouter.post('/messages', async (req: Request, res: Response) => {
     cacheControlPrefixLength: messageHasCacheControl ? messages.length : (systemHasCacheControl ? 1 : 0),
   });
   messages = compressionResult.messages;
-  res.setHeader('X-Router7-Compress', formatCompressionHeader(compressionResult));
+  const compressHeaderVal = formatCompressionHeader(compressionResult);
+  res.setHeader('X-Router7-Compress', compressHeaderVal);
+  res.setHeader('x-freellm-compress', compressHeaderVal);
 
   const estimatedInputTokens = estimateInputTokens(messages, tools);
   const imageCount = messages.reduce((n, m) =>
@@ -1105,7 +1107,9 @@ anthropicRouter.post('/messages/count_tokens', (req: Request, res: Response) => 
     tools,
     recordStats: false,
   });
-  res.setHeader('X-Router7-Compress', formatCompressionHeader(compressionResult));
+  const compressHeaderVal = formatCompressionHeader(compressionResult);
+  res.setHeader('X-Router7-Compress', compressHeaderVal);
+  res.setHeader('x-freellm-compress', compressHeaderVal);
   res.json({ input_tokens: estimateInputTokens(compressionResult.messages, tools) });
 });
 

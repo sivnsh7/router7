@@ -714,7 +714,9 @@ responsesRouter.post('/responses', async (req: Request, res: Response) => {
     cacheControlPrefixLength: hasCacheControl ? messages.length : 0,
   });
   messages = compressionResult.messages;
-  res.setHeader('X-Router7-Compress', formatCompressionHeader(compressionResult));
+  const compressHeaderVal = formatCompressionHeader(compressionResult);
+  res.setHeader('X-Router7-Compress', compressHeaderVal);
+  res.setHeader('x-freellm-compress', compressHeaderVal);
 
   // Server-enforced system prompt (#411): after compression so it is never
   // compressed away, first in the list so the caller's own instructions

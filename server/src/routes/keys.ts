@@ -445,6 +445,23 @@ keysRouter.get('/', (_req: Request, res: Response) => {
   res.json(keys);
 });
 
+// Clear every active cooldown for all keys belonging to a platform.
+keysRouter.delete('/platform/:platform/cooldowns', (req: Request, res: Response) => {
+  const platform = req.params.platform;
+  if (!platform) {
+    res.status(400).json({ error: 'Invalid platform' });
+    return;
+  }
+
+  const db = getDb();
+  const keys = db.prepare('SELECT id FROM api_keys WHERE platform = ?').all(platform) as { id: number }[];
+  let totalCleared = 0;
+  for (const k of keys) {
+    totalCleared += clearCooldownsForKey(k.id);
+  }
+  res.json({ cleared: totalCleared, keysCount: keys.length });
+});
+
 // Clear every active cooldown for one key. An escalated cooldown can bench a key
 // for up to 24h from a single bad window; once the operator has fixed the cause
 // there is otherwise no way back short of restarting and waiting it out.

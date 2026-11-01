@@ -1637,7 +1637,9 @@ proxyRouter.post('/chat/completions', async (req: Request, res: Response) => {
     cacheControlPrefixLength,
   });
   messages = compressionResult.messages;
-  res.setHeader('X-Router7-Compress', formatCompressionHeader(compressionResult));
+  const compressHeaderVal = formatCompressionHeader(compressionResult);
+  res.setHeader('X-Router7-Compress', compressHeaderVal);
+  res.setHeader('x-freellm-compress', compressHeaderVal);
 
   // Server-enforced system prompt (#411): injected AFTER compression so it is
   // never compressed away, and FIRST in the list so a caller-supplied system

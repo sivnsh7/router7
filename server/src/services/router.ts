@@ -2181,6 +2181,36 @@ export function routeRequest(estimatedTokens = 1000, skipKeys?: Set<string>, pre
     if (route) return route;
   }
 
+  // Modality Capacity Fallback: If the request required vision or tools and all candidates in
+  // the chain were rejected solely due to capability mismatch, attempt an auto-rescue sweep
+  // over any enabled, capable model across configured providers.
+  if ((requireVision || requireTools) && diag.length > 0 && !diag.some(d => !d.includes('no vision support') && !d.includes('no tool-calling support') && !d.includes('provider ruled out'))) {
+    const rescueCandidates = db.prepare(`
+      SELECT m.id as model_db_id, 999 as priority, 1 as enabled,
+             m.platform, m.model_id, m.display_name, m.intelligence_rank,
+             m.size_label, m.monthly_token_budget,
+             m.rpm_limit, m.rpd_limit, m.tpm_limit, m.tpd_limit, m.supports_vision,
+             m.supports_tools, m.context_window, m.key_id, m.endpoint_scope
+      FROM models m
+      JOIN api_keys k ON k.platform = m.platform AND k.enabled = 1
+      WHERE m.enabled = 1
+        ${requireVision ? 'AND m.supports_vision = 1' : ''}
+        ${requireTools ? 'AND m.supports_tools = 1' : ''}
+      ORDER BY m.intelligence_rank ASC
+      LIMIT 10
+    `).all() as ChainRow[];
+
+    for (const rescueEntry of rescueCandidates) {
+      if (skipPlatforms?.has(rescueEntry.platform)) continue;
+      if (skipModels?.has(rescueEntry.model_db_id)) continue;
+      const rescueRoute = selectKeyForModel(rescueEntry, estimatedTokens, skipKeys, diag);
+      if (rescueRoute) {
+        diag.push(`[MODALITY_CAPACITY_RESCUE] Auto-rescued request to ${rescueEntry.platform}/${rescueEntry.model_id}`);
+        return rescueRoute;
+      }
+    }
+  }
+
   // The aggregate keyless line rides in diagnostics but NOT in the summary's
   // route count: those models were never candidates for this request.
   throw new RouteError(

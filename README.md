@@ -38,10 +38,15 @@ Point your existing OpenAI SDK, LangChain, LlamaIndex, Cursor, Claude Code, Clin
 
 ### 1. 🔄 Automatic Failover & Zero-Downtime Resilience
 - **Instant Fallback**: If an upstream provider rate-limits (HTTP 429), errors (5xx), or throttles latency, Router7 transparently routes the request to the next candidate model in your fallback chain without dropping your stream.
-- **Provider Key Rotation**: Distribute requests across multiple API keys for the same provider to multiply throughput and stay comfortably within tier limits.
-- **Dynamic Cooldowns**: Backs off dying keys exponentially and automatically re-probes them when quota resets.
+- **Modality Capacity Auto-Rescue**: If a coding harness or agent sends image or audio inputs to a text-only model or alias, Router7 automatically rescues the request by forwarding it to the highest-ranking multimodal-capable model in your pool without failing.
+- **Provider Key Rotation & Live Cooldowns**: Distribute requests across multiple API keys. Keys placed on cooldown display real-time countdown badges (`⏱ 45s`) with instant 1-click **Reset Cooldown** buttons per key or per platform.
 
-### 2. 🧠 Dynamic Routing Strategies
+### 2. 🗂️ Tactical Field Dossier & Intelligence Matrix
+- **Two-Column Gateway Architecture**: Every provider features a high-density, tactile Field Dossier separating the **Credentials Vault** (keys, proxies, latency ping probes, quota gauges) from the **Served Models Matrix** (capabilities, inline model latency benchmarks, and alias controls).
+- **Thinking Level Knob**: Configure default reasoning thinking budgets (`Auto`, `Low`, `Medium`, `High`, `Max`) per provider or model, automatically mapped across OpenAI `reasoning_effort`, Anthropic thinking tokens, and Gemini thinking budgets.
+- **Status-Weighted Priority Sorting**: Providers automatically sort by operational health: Active & Healthy first, Attention/Cooldown second, and Unconfigured last, backed by instant filter tabs (`All`, `Healthy`, `Attention`, `Disabled`).
+
+### 3. 🧠 Dynamic Routing Strategies
 Switch between 6 smart routing strategies on the fly:
 - **Fastest**: Prioritizes minimum Time-To-First-Token (TTFT) and throughput.
 - **Smartest**: Prioritizes reasoning depth and model intelligence scores.
@@ -50,11 +55,11 @@ Switch between 6 smart routing strategies on the fly:
 - **Manual**: Strict user-defined chain priority ordering.
 - **Custom Weights**: Fine-tune custom weight percentages for Speed, Intelligence, and Stability.
 
-### 3. 🧪 Ensemble Composer & Fusion (Multi-Model Synthesis)
+### 4. 🧪 Ensemble Composer & Fusion (Multi-Model Synthesis)
 - Send prompts to the virtual `fusion` model to fan requests out to multiple diverse models simultaneously.
 - An evaluator/judge model synthesizes the drafts into one authoritative, hallucination-reduced response.
 
-### 4. 🎨 Comprehensive Multimodal Suite
+### 5. 🎨 Comprehensive Multimodal Suite
 Router7 translates standard REST requests across all major modalities:
 - **Chat & Reasoning**: Full OpenAI `/v1/chat/completions` compatibility, streaming SSE, tool calling, JSON schema outputs.
 - **Anthropic Messages**: Direct `/v1/messages` drop-in for **Claude Code** and Anthropic SDKs.
@@ -65,7 +70,7 @@ Router7 translates standard REST requests across all major modalities:
 - **Speech & Audio**: Text-to-Speech via `/v1/audio/speech` and Whisper transcription via `/v1/audio/transcriptions`.
 - **Generative Media**: Image creation via `/v1/images/generations` and video rendering via `/v1/videos/generations`.
 
-### 5. 🛡️ Local-First & Zero Leakage Security
+### 6. 🛡️ Local-First & Zero Leakage Security
 - **AES-256-GCM Encryption**: All upstream credentials are encrypted at rest in local SQLite (`router7.db`) and decrypted only in-memory per hop.
 - **Unified Gateway Token**: Downstream applications only ever see your single `router7-...` bearer key. Upstream secrets are never exposed to agents or client code.
 - **Interactive Auth Gate with Self-Registration**: Modern clay/paper web console with self-registration, session tokens, and instant login protection.
