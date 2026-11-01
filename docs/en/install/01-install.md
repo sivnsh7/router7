@@ -33,6 +33,28 @@ Open http://localhost:3001, add your provider keys on the **Keys** page, reorder
 
 Your install keeps itself updated from the signed catalog feed. The current full catalog is listed at [router7.co/models](https://router7.co/models.html).
 
+### CLI Installation & Shell Aliases
+
+Install the companion CLI globally via npm to configure coding agents in one command:
+
+```bash
+npm install -g router7
+```
+
+This installs both the `router7` binary and the `r7` shortcut alias globally. Alternatively, add shell aliases for zero-install `npx`:
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc:
+echo "alias router7='npx router7'" >> ~/.bashrc
+echo "alias r7='router7'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+If running from the source monorepo, configure local aliases with:
+```bash
+npm run setup:alias
+```
+
 ## Docker Compose
 
 Runs the API and dashboard together on port 3001 and persists SQLite in a named volume.

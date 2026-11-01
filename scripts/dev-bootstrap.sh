@@ -77,3 +77,4 @@ else
 fi
 
 echo 'Bootstrap complete. Start development with: npm run dev'
+echo 'Tip: Run "npm run setup:alias" to configure global "router7" and "r7" aliases.'

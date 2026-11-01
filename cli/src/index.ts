@@ -173,7 +173,7 @@ async function catalog(url: string, apiKey: string, availableOnly = true): Promi
     const reason = cause ?? (error instanceof Error ? error.message : String(error));
     throw new Error(
       `Could not reach the Router7 gateway at ${rootUrl(url)} (${reason}). `
-      + 'Check that the server is running, or point the CLI at it with --url or FREELLMAPI_URL.',
+      + 'Check that the server is running, or point the CLI at it with --url or ROUTER7_URL.',
     );
   }
   if (!response.ok) {
@@ -276,7 +276,7 @@ function help(): string {
     '  keys              Add, list, remove, or test provider keys (keys --help)',
     '',
     'Environment:',
-    '  FREELLMAPI_URL, FREELLMAPI_API_KEY, FREELLMAPI_DASHBOARD_TOKEN (keys only)',
+    '  ROUTER7_URL, ROUTER7_API_KEY, ROUTER7_DASHBOARD_TOKEN (keys only)',
   ].join('\n');
 }
 

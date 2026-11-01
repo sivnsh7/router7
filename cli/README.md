@@ -10,11 +10,44 @@ Point your coding agent at a [Router7](https://github.com/sivnsh7/router7)
 gateway in one command. The generators read the models your server is actually
 serving and write the config file each tool expects.
 
+## 🚀 Installation & Shell Aliases
+
+### Option 1: Global Install via NPM (Recommended)
+Install globally to get the **`router7`** executable and the built-in **`r7`** short alias in your `$PATH`:
+
 ```bash
-npx router7 setup-claude --url http://localhost:3001 --api-key <your-key>
+npm install -g router7
 ```
 
-No install step, no account. The unified API key comes from your Router7
+Once installed, you can run either command anywhere:
+```bash
+# Using the full command:
+router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+
+# Or using the short alias:
+r7 setup-claude --url http://localhost:3002 --api-key <your-key>
+```
+
+### Option 2: Zero-Install via `npx`
+Run directly without installing:
+
+```bash
+npx router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+```
+
+### Option 3: Permanent Shell Aliases (Bash / Zsh)
+To create permanent `router7` and `r7` aliases for `npx router7`, add this snippet to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+# Add Router7 CLI aliases
+echo "alias router7='npx router7'" >> ~/.bashrc
+echo "alias r7='router7'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+*(For Zsh users, replace `.bashrc` with `.zshrc`)*.
+
+No account needed. The unified API key comes from your Router7
 dashboard (or the tray popover in the desktop app).
 
 ## Commands

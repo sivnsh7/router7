@@ -171,20 +171,69 @@ Router7 includes pre-built integration recipes and auto-config generators for mo
 
 ---
 
-## 📦 CLI Toolchain
+## 📦 CLI Toolchain & Shell Aliases
 
-Install or run the Router7 CLI via npm:
+Manage your gateway and configure coding agents using the official `router7` CLI.
+
+### 1. Global Installation (Recommended)
+Install globally to get the **`router7`** executable and built-in **`r7`** short alias:
 
 ```bash
-# Run without installing:
-npx router7 --help
+npm install -g router7
+```
 
+Once installed, use either command anywhere in your terminal:
+
+```bash
+# Using the full command:
+router7 --help
+router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+
+# Or using the short alias:
+r7 doctor --url http://localhost:3002
+r7 keys list --url http://localhost:3002 --token <DASHBOARD_TOKEN>
+```
+
+### 2. Zero-Install via `npx`
+Run directly without installing:
+
+```bash
+npx router7 --help
+npx router7 setup-claude --url http://localhost:3002 --api-key <your-key>
+```
+
+### 3. Permanent Shell Aliases (Bash / Zsh)
+To configure permanent `router7` and `r7` aliases for your shell:
+
+```bash
+# Append aliases to your shell configuration:
+echo "alias router7='npx router7'" >> ~/.bashrc
+echo "alias r7='router7'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+*(For Zsh users, replace `.bashrc` with `.zshrc`)*.
+
+### 4. Setup Aliases From Cloned Repo
+If you cloned the repository locally, run the built-in alias setup helper:
+
+```bash
+npm run setup:alias
+# or:
+./scripts/setup-alias.sh
+```
+
+---
+
+### Key Commands
+
+```bash
 # Inspect gateway health and active models:
-npx router7 doctor --url http://localhost:3002
+router7 doctor --url http://localhost:3002
 
 # Manage keys directly from your terminal:
-npx router7 keys list --url http://localhost:3002 --token <DASHBOARD_TOKEN>
-npx router7 keys test groq --url http://localhost:3002 --token <DASHBOARD_TOKEN>
+router7 keys list --url http://localhost:3002 --token <DASHBOARD_TOKEN>
+router7 keys test groq --url http://localhost:3002 --token <DASHBOARD_TOKEN>
 ```
 
 ---
