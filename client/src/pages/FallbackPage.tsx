@@ -343,7 +343,8 @@ export default function FallbackPage() {
         tabs={<ModelsTabs />}
       />
 
-      <Reveal staggerIndex={0}>
+      <div className="space-y-6">
+        <Reveal staggerIndex={0}>
         <div className="space-y-6">
           {/* First-run checklist: hides itself once the install has keys + a request */}
           <GettingStarted />
@@ -501,17 +502,8 @@ export default function FallbackPage() {
         </div>
       </Reveal>
 
-          <Reveal staggerIndex={1}>
-            <RaisedCard elevation="medium" className="p-5">
-              <ChainManager />
-            </RaisedCard>
-          </Reveal>
-
-          <Reveal staggerIndex={2}>
-            <RaisedCard elevation="medium" className="p-5">
-              <PenaltyInspector />
-            </RaisedCard>
-          </Reveal>
+      <ChainManager />
+      <PenaltyInspector />
 
         {/* Unified routing / fallback table */}
         {isLoading ? (
@@ -673,5 +665,6 @@ export default function FallbackPage() {
           </>
         )}
       </div>
+    </div>
   )
 }

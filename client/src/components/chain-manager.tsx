@@ -7,6 +7,8 @@ import { ClayButton } from '@/components/ui/clay-button'
 import { ClayInput } from '@/components/ui/clay-input'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip } from '@/components/tooltip'
+import { RaisedCard } from '@/components/ui/clay-card'
+import { Reveal } from '@/components/ui/motion'
 
 // Named fallback chains (#960/#895). The backend /api/profiles CRUD is
 // complete and every chain is listed as an `auto:<name>` model in /v1/models;
@@ -130,13 +132,14 @@ export function ChainManager() {
   }
 
   return (
-    <section className="rounded-lg border bg-card">
+    <Reveal staggerIndex={1}>
+      <RaisedCard elevation="low" className="border-[2px] border-ink bg-paper-3 overflow-hidden">
       <button
         type="button"
         onClick={toggle}
         aria-expanded={!collapsed}
         aria-label={collapsed ? t('common.show') : t('common.hide')}
-        className={`flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left ${collapsed ? '' : 'border-b'}`}
+        className={`flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-paper-2/40 ${collapsed ? '' : 'border-b-[2px] border-ink'}`}
       >
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-muted-foreground" />
@@ -323,6 +326,7 @@ export function ChainManager() {
             : <p className="mt-1.5 text-xs text-muted-foreground">{t('chains.nameRules')}</p>}
         </div>
       )}
-    </section>
+    </RaisedCard>
+    </Reveal>
   )
 }

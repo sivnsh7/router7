@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, ChevronDown, Clock3, Eraser, Gauge, RefreshCcw } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { apiFetch } from '@/lib/api'
+import { RaisedCard } from '@/components/ui/clay-card'
+import { Reveal } from '@/components/ui/motion'
 
 // Collapse state persists so a returning user keeps their last choice; a fresh
 // install (no stored value) defaults to collapsed to keep the routing page calm.
@@ -126,13 +128,14 @@ export function PenaltyInspector() {
   }
 
   return (
-    <section className="rounded-lg border bg-card">
+    <Reveal staggerIndex={2}>
+      <RaisedCard elevation="low" className="border-[2px] border-ink bg-paper-3 overflow-hidden">
       <button
         type="button"
         onClick={toggle}
         aria-expanded={!collapsed}
         aria-label={collapsed ? t('common.show') : t('common.hide')}
-        className={`flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left ${collapsed ? '' : 'border-b'}`}
+        className={`flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-paper-2/40 ${collapsed ? '' : 'border-b-[2px] border-ink'}`}
       >
         <div className="flex items-center gap-2">
           <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" />
@@ -246,6 +249,7 @@ export function PenaltyInspector() {
         ))}
       </div>
       )}
-    </section>
+    </RaisedCard>
+    </Reveal>
   )
 }
