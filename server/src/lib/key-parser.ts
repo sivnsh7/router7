@@ -117,6 +117,8 @@ export const PREFIX_MAP: Record<string, string> = {
   ORCA_: 'orcarouter',
   UNOROUTER_: 'unorouter',
   UNO_ROUTER_: 'unorouter',
+  POLLINATIONS_: 'pollinations',
+  LLM7_: 'llm7',
   XKIRO_: 'xkiro',
   MODELSCOPE_: 'modelscope',
   MODEL_SCOPE_: 'modelscope',
