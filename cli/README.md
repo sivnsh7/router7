@@ -56,7 +56,7 @@ r7 [options]
 
 | Flag | Description | Default |
 | :--- | :--- | :--- |
-| `-p, --port <port>` | Port to run the server on | `3002` (or `$PORT`) |
+| `-p, --port <port>` | Port to run the server on | `3001` (or `$PORT`) |
 | `-h, --host <host>` | Host address to bind to | `127.0.0.1` (or `$HOST`) |
 | `--no-open` | Start server without auto-opening browser | `false` |
 | `-v, --version` | Print current Router7 version | |
@@ -65,14 +65,14 @@ r7 [options]
 ### Examples
 
 ```bash
-# Start server on default port (3002) and open browser
+# Start server on default port (3001) and open browser
 r7
 
 # Start on a custom port
 r7 --port 8080
 
 # Run in background / headless mode (e.g. VPS or server)
-r7 --no-open --host 0.0.0.0 --port 3002
+r7 --no-open --host 0.0.0.0 --port 3001
 ```
 
 ---
@@ -81,11 +81,11 @@ r7 --no-open --host 0.0.0.0 --port 3002
 
 Once started, Router7 exposes the unified API surfaces and the web console:
 
-- **Web Dashboard**: `http://localhost:3002`
-- **OpenAI Proxy**: `http://localhost:3002/v1/chat/completions`
-- **Anthropic Wire**: `http://localhost:3002/v1/messages` (Claude Code drop-in)
-- **Google Gemini**: `http://localhost:3002/v1beta`
-- **Health Check**: `http://localhost:3002/api/ping`
+- **Web Dashboard**: `http://localhost:3001`
+- **OpenAI Proxy**: `http://localhost:3001/v1/chat/completions`
+- **Anthropic Wire**: `http://localhost:3001/v1/messages` (Claude Code drop-in)
+- **Google Gemini**: `http://localhost:3001/v1beta`
+- **Health Check**: `http://localhost:3001/api/ping`
 
 ---
 

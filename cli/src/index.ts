@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import http from 'node:http';
+import net from 'node:net';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +12,7 @@ const PKG_ROOT = path.resolve(__dirname, '..');
 
 interface ServerOptions {
   port: number;
+  explicitPort: boolean;
   host: string;
   noOpen: boolean;
 }
@@ -25,7 +27,7 @@ function printBanner(port: number, host: string) {
 / _, _/ /_/ / /_/ / /_/  __/ /     / /  
 /_/ |_|\\____/\\__,_/\\__/\\___/_/     /_/   
 
-🌐 Router7 AI Gateway & GUI Dashboard (v0.7.0)
+🌐 Router7 AI Gateway & GUI Dashboard (v0.7.1)
 ──────────────────────────────────────────────────────────
   Dashboard:        ${url}
   OpenAI Endpoint:  ${url}/v1
@@ -44,14 +46,14 @@ Usage:
   router7 [options]
 
 Options:
-  -p, --port <number>   Port to listen on (default: 3002 or $PORT)
+  -p, --port <number>   Port to listen on (default: 3001 or $PORT)
   -h, --host <string>   Host interface to bind to (default: 127.0.0.1 or $HOST)
   --no-open             Do not automatically open the web dashboard in the browser
   -v, --version         Show Router7 version
   --help                Show this help message
 
 Examples:
-  r7                    Start server & launch dashboard on http://127.0.0.1:3002
+  r7                    Start server & launch dashboard on http://127.0.0.1:3001
   r7 --port 8080        Start server on port 8080
   r7 --no-open          Start in headless / background mode
 `);
@@ -79,6 +81,28 @@ function openBrowser(url: string) {
   } catch {
     // Non-blocking: skip if no graphical environment
   }
+}
+
+function isPortAvailable(port: number, host: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port, host === '0.0.0.0' ? undefined : host);
+  });
+}
+
+async function findAvailablePort(startPort: number, host: string): Promise<number> {
+  let port = startPort;
+  while (port < startPort + 50) {
+    if (await isPortAvailable(port, host)) {
+      return port;
+    }
+    port++;
+  }
+  return startPort;
 }
 
 function resolveServerEntry(): { serverPath: string; clientDistPath?: string } {
@@ -149,7 +173,15 @@ function waitForReady(host: string, port: number, timeoutMs = 8000): Promise<boo
 }
 
 function parseArgs(argv: string[]): ServerOptions {
-  let port = Number(process.env.PORT) || 3002;
+  let explicitPort = false;
+  let port = 3001;
+  if (process.env.PORT) {
+    const envP = Number(process.env.PORT);
+    if (Number.isInteger(envP) && envP > 0 && envP < 65536) {
+      port = envP;
+      explicitPort = true;
+    }
+  }
   let host = process.env.HOST || '127.0.0.1';
   let noOpen = false;
 
@@ -160,7 +192,7 @@ function parseArgs(argv: string[]): ServerOptions {
       process.exit(0);
     }
     if (arg === '-v' || arg === '--version') {
-      console.log('router7 v0.7.0');
+      console.log('router7 v0.7.1');
       process.exit(0);
     }
     if (arg === '--no-open') {
@@ -171,6 +203,7 @@ function parseArgs(argv: string[]): ServerOptions {
       const val = Number(argv[++i]);
       if (Number.isInteger(val) && val > 0 && val < 65536) {
         port = val;
+        explicitPort = true;
       } else {
         console.error(`Invalid port: ${argv[i]}`);
         process.exit(1);
@@ -183,18 +216,26 @@ function parseArgs(argv: string[]): ServerOptions {
     }
   }
 
-  return { port, host, noOpen };
+  return { port, explicitPort, host, noOpen };
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const { serverPath, clientDistPath } = resolveServerEntry();
 
-  printBanner(options.port, options.host);
+  let targetPort = options.port;
+  if (!options.explicitPort) {
+    targetPort = await findAvailablePort(options.port, options.host);
+    if (targetPort !== options.port) {
+      console.log(`Port ${options.port} is in use; automatically selected port ${targetPort}.`);
+    }
+  }
+
+  printBanner(targetPort, options.host);
 
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    PORT: String(options.port),
+    PORT: String(targetPort),
     HOST: options.host,
   };
 
@@ -235,10 +276,10 @@ async function main() {
 
   // Once server is ready, open browser
   if (!options.noOpen) {
-    const ready = await waitForReady(options.host, options.port);
+    const ready = await waitForReady(options.host, targetPort);
     if (ready) {
       const displayHost = options.host === '0.0.0.0' ? '127.0.0.1' : options.host;
-      const targetUrl = `http://${displayHost}:${options.port}`;
+      const targetUrl = `http://${displayHost}:${targetPort}`;
       console.log(`🚀 Opening dashboard at ${targetUrl}...\n`);
       openBrowser(targetUrl);
     }

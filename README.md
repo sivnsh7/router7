@@ -30,7 +30,7 @@
 
 **Router7** is a high-performance, local-first AI Gateway designed to eliminate rate limits, provider downtime, and vendor lock-in. Instead of managing separate SDKs, billing accounts, and error handling for OpenAI, Anthropic, Google Gemini, Groq, Cerebras, Mistral, Cohere, DeepSeek, and Ollama, Router7 provides **one unified API endpoint** that automatically handles routing, fallbacks, token budgeting, and multi-model synthesis.
 
-Point your existing OpenAI SDK, LangChain, LlamaIndex, Cursor, Claude Code, Cline, or custom agent at `http://localhost:3002/v1`, and Router7 dynamically directs each prompt to the fastest, cheapest, or smartest candidate in your pool.
+Point your existing OpenAI SDK, LangChain, LlamaIndex, Cursor, Claude Code, Cline, or custom agent at `http://localhost:3001/v1`, and Router7 dynamically directs each prompt to the fastest, cheapest, or smartest candidate in your pool.
 
 ---
 
@@ -90,8 +90,8 @@ npm install
 npm run dev
 ```
 
-- **Gateway Endpoint:** `http://localhost:3002/v1`
-- **Dashboard UI:** `http://localhost:3002` (or `http://localhost:5173` in standalone client mode)
+- **Gateway Endpoint:** `http://localhost:3001/v1`
+- **Dashboard UI:** `http://localhost:3001` (or `http://localhost:5173` in standalone client mode)
 
 ---
 
@@ -102,9 +102,9 @@ Run Router7 in an isolated container with persistent storage:
 ```bash
 docker run -d \
   --name router7 \
-  -p 3002:3002 \
+  -p 3001:3001 \
   -v ~/.router7/data:/app/server/data \
-  -e PORT=3002 \
+  -e PORT=3001 \
   ghcr.io/sivnsh7/router7:latest
 ```
 
@@ -115,7 +115,7 @@ docker run -d \
 Router7 is architected to support both human operators via the web dashboard and programmatic agents via direct tokens.
 
 ### 1. Web Dashboard (Interactive Management)
-- **First-Run Admin Setup**: On a fresh install, visiting `http://localhost:3002` prompts you to create your administrator account. Local loopback requests require no codes; remote access requires the setup code printed to stdout at server start.
+- **First-Run Admin Setup**: On a fresh install, visiting `http://localhost:3001` prompts you to create your administrator account. Local loopback requests require no codes; remote access requires the setup code printed to stdout at server start.
 - **User Self-Registration**: Team members can create separate operator logins directly using the **Create Account (Register)** tab on the login screen or via `POST /api/auth/register`.
 - **Session Tokens**: Authenticated sessions persist via 30-day cryptographically minted tokens.
 
@@ -125,7 +125,7 @@ All inference APIs authenticate using your **Unified Gateway Key**:
 
 ```bash
 # Generate completions directly without ever logging into the web UI:
-curl http://localhost:3002/v1/chat/completions \
+curl http://localhost:3001/v1/chat/completions \
   -H "Authorization: Bearer <YOUR_ROUTER7_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -161,7 +161,7 @@ Router7 is **100% GUI-driven**. All integrations, model mappings, and configurat
 | Agent / Tool | Dashboard Integration | Target Wire |
 |---|---|---|
 | **Claude Code** | 1-click config generator under Client Adapters | `/v1/messages` (Native Anthropic) |
-| **Cursor** | Point `OpenAI Base URL` to `http://localhost:3002/v1` | `/v1/chat/completions` |
+| **Cursor** | Point `OpenAI Base URL` to `http://localhost:3001/v1` | `/v1/chat/completions` |
 | **Codex CLI** | Dedicated Codex configuration preset | `/v1/responses` |
 | **Cline / Roo Code** | OpenAI-compatible custom endpoint config | `/v1` |
 | **Aider** | Copy-paste startup flags or `.aider.conf.yml` | `/v1` |
@@ -226,7 +226,7 @@ r7
 
 | Flag | Meaning | Default |
 |---|---|---|
-| `-p, --port <port>` | Port to listen on | `3002` (or `$PORT`) |
+| `-p, --port <port>` | Port to listen on | `3001` (or `$PORT`) |
 | `-h, --host <host>` | Host interface to bind to | `127.0.0.1` (or `$HOST`) |
 | `--no-open` | Start server in headless mode (don't open browser) | `false` |
 | `-v, --version` | Display current version | |
@@ -243,7 +243,7 @@ from openai import OpenAI
 
 # Point directly to your Router7 instance
 client = OpenAI(
-    base_url="http://localhost:3002/v1",
+    base_url="http://localhost:3001/v1",
     api_key="your-router7-key",
 )
 
@@ -266,7 +266,7 @@ for chunk in response:
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "http://localhost:3002/v1",
+  baseURL: "http://localhost:3001/v1",
   apiKey: process.env.ROUTER7_API_KEY,
 });
 
