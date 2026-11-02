@@ -379,8 +379,9 @@ export function createApp(config?: Config) {
       },
     }));
     // SPA fallback — serve index.html for non-API routes
+    const API_ROUTE_PREFIX = /^\/(api|v1|v1beta|mcp)(\/|$)/;
     app.use((req, res, next) => {
-      if (req.path.startsWith('/api/') || req.path.startsWith('/v1/') || req.path.startsWith('/v1beta/')) {
+      if (API_ROUTE_PREFIX.test(req.path)) {
         next();
         return;
       }
@@ -404,6 +405,22 @@ export function createApp(config?: Config) {
       });
     });
   }
+
+  // 404 handler for unmatched API routes and unmatched fallthrough
+  const API_ROUTE_PREFIX = /^\/(api|v1|v1beta|mcp)(\/|$)/;
+  app.use((req, res) => {
+    if (API_ROUTE_PREFIX.test(req.path)) {
+      res.status(404).json({
+        error: {
+          message: `Endpoint ${req.method} ${req.path} not found`,
+          type: 'invalid_request_error',
+          code: 'not_found',
+        },
+      });
+      return;
+    }
+    res.status(404).type('text/plain').send('Not Found');
+  });
 
   return app;
 }

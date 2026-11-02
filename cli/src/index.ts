@@ -10,6 +10,21 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = path.resolve(__dirname, '..');
 
+function getVersion(): string {
+  try {
+    const pkgPath = path.join(PKG_ROOT, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      if (typeof pkg.version === 'string' && pkg.version.trim()) {
+        return pkg.version.trim();
+      }
+    }
+  } catch {
+    // fallback if package.json read fails
+  }
+  return '0.7.7';
+}
+
 interface ServerOptions {
   port: number;
   explicitPort: boolean;
@@ -27,7 +42,7 @@ function printBanner(port: number, host: string) {
 / _, _/ /_/ / /_/ / /_/  __/ /     / /  
 /_/ |_|\\____/\\__,_/\\__/\\___/_/     /_/   
 
-🌐 Router7 AI Gateway & GUI Dashboard (v0.7.6)
+🌐 Router7 AI Gateway & GUI Dashboard (v${getVersion()})
 ──────────────────────────────────────────────────────────
   Dashboard:        ${url}
   OpenAI Endpoint:  ${url}/v1
@@ -202,7 +217,7 @@ function parseArgs(argv: string[]): ServerOptions {
       process.exit(0);
     }
     if (arg === '-v' || arg === '--version') {
-      console.log('router7 v0.7.6');
+      console.log(`router7 v${getVersion()}`);
       process.exit(0);
     }
     if (arg === '--no-open') {
