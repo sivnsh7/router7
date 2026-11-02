@@ -79,7 +79,23 @@ Router7 translates standard REST requests across all major modalities:
 
 ## 🚀 Quick Start
 
-### Option A: Local Development (Recommended)
+### 1-Click Automated Setup (Recommended)
+
+Run this single command in your terminal to automatically configure the `r7` command, executable wrappers, and shell aliases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
+```
+
+Once configured, simply run:
+```bash
+r7
+```
+This immediately starts the gateway server and launches the interactive dashboard at `http://localhost:3001` in your browser!
+
+---
+
+### Option A: Local Development / Clone From Source
 
 **Prerequisites:** Node.js 20+ and npm.
 
@@ -88,11 +104,16 @@ Router7 translates standard REST requests across all major modalities:
 git clone https://github.com/sivnsh7/router7.git
 cd router7
 
-# 2. Install dependencies across workspaces
+# 2. Configure r7 command automatically
+./install.sh
+
+# 3. Install dependencies across workspaces
 npm install
 
-# 3. Start the backend gateway and frontend dashboard
+# 4. Start the backend gateway and frontend dashboard
 npm run dev
+# or simply:
+r7
 ```
 
 - **Gateway Endpoint:** `http://localhost:3001/v1`
@@ -179,14 +200,18 @@ Router7 is **100% GUI-driven**. All integrations, model mappings, and configurat
 
 Router7 provides the **`r7`** command (and full alias **`router7`**) to start the gateway server and immediately launch the web dashboard in your default browser.
 
-### 1. Global Installation (Recommended)
-Install globally to get `r7` and `router7` in your terminal:
+### 1. 1-Click Automated Setup (Recommended)
+Copy and paste this single command into your terminal:
 
 ```bash
-npm install -g router7
+curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
 ```
 
-Now start the server and open the web dashboard:
+Everything will be configured automatically:
+- Configures `~/.local/bin/r7` and `~/.local/bin/router7`
+- Injects aliases into your shell (`~/.bashrc`, `~/.zshrc`, etc.)
+- You can immediately type `r7` in your terminal to start the tool!
+
 ```bash
 # Start with short alias:
 r7
@@ -195,36 +220,33 @@ r7
 router7
 ```
 
-### 2. Zero-Install via `npx`
-Run directly without installing:
+### 2. Global Installation via npm
+Install globally to get `r7` and `router7` in your terminal:
+
+```bash
+npm install -g router7
+```
+
+### 3. Zero-Install via `npx`
+Run directly on-demand without installing:
 
 ```bash
 npx router7
 ```
 
-### 3. Permanent Shell Aliases (Bash / Zsh)
-Add the `r7` and `router7` aliases to your shell configuration (`~/.bashrc` or `~/.zshrc`):
-
-```bash
-# Append aliases to your shell configuration:
-echo "alias r7='npx router7'" >> ~/.bashrc
-echo "alias router7='npx router7'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-*(For Zsh users, replace `.bashrc` with `.zshrc`)*.
-
 ### 4. Running From Source / Local Clone
 If you cloned the repository locally:
 
 ```bash
-# Configure local r7 alias:
+# Configure local r7 alias and launcher:
+./install.sh
+# or:
 npm run setup:alias
 
 # Start the server and launch the GUI dashboard:
-npm start
-# or:
 r7
+# or:
+npm start
 ```
 
 ### CLI Options

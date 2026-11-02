@@ -14,14 +14,18 @@ Running **`r7`** or **`router7`** boots the gateway server and immediately launc
 
 ## ⚡ Quick Start
 
-### 1. Global Installation (Recommended)
-Install globally to get the **`r7`** and **`router7`** commands anywhere in your terminal:
+### 1. 1-Click Automated Setup (Recommended)
+Copy and paste this single command into your terminal:
 
 ```bash
-npm install -g router7
+curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
 ```
 
-Now start the server and open the dashboard with a single command:
+Everything will be configured automatically:
+- Configures `~/.local/bin/r7` and `~/.local/bin/router7`
+- Injects aliases into your shell (`~/.bashrc`, `~/.zshrc`, etc.)
+- You can immediately type `r7` in your terminal to start the tool!
+
 ```bash
 # Using the short alias:
 r7
@@ -30,20 +34,18 @@ r7
 router7
 ```
 
-### 2. Zero-Install via `npx`
-Run directly without installing:
+### 2. Global Installation via npm
+Install globally to get the **`r7`** and **`router7`** commands anywhere in your terminal:
+
+```bash
+npm install -g router7
+```
+
+### 3. Zero-Install via `npx`
+Run directly on-demand without installing:
 
 ```bash
 npx router7
-```
-
-### 3. Permanent Shell Aliases (Bash / Zsh)
-Add the `r7` and `router7` aliases to your shell configuration (`~/.bashrc` or `~/.zshrc`):
-
-```bash
-echo "alias r7='npx router7'" >> ~/.bashrc
-echo "alias router7='npx router7'" >> ~/.bashrc
-source ~/.bashrc
 ```
 
 ---

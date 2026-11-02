@@ -27,7 +27,7 @@ function printBanner(port: number, host: string) {
 / _, _/ /_/ / /_/ / /_/  __/ /     / /  
 /_/ |_|\\____/\\__,_/\\__/\\___/_/     /_/   
 
-🌐 Router7 AI Gateway & GUI Dashboard (v0.7.3)
+🌐 Router7 AI Gateway & GUI Dashboard (v0.7.4)
 ──────────────────────────────────────────────────────────
   Dashboard:        ${url}
   OpenAI Endpoint:  ${url}/v1
@@ -192,7 +192,7 @@ function parseArgs(argv: string[]): ServerOptions {
       process.exit(0);
     }
     if (arg === '-v' || arg === '--version') {
-      console.log('router7 v0.7.3');
+      console.log('router7 v0.7.4');
       process.exit(0);
     }
     if (arg === '--no-open') {
