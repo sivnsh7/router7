@@ -2,6 +2,7 @@ import express from 'express';
 import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { keysRouter } from './routes/keys.js';
@@ -332,9 +333,28 @@ export function createApp(config?: Config) {
   // Set serveStaticAssets: false in Config to skip static serving entirely
   // (e.g. in runtimes that serve assets through a different mechanism).
   if (cfg.serveStaticAssets) {
-    const clientDist = cfg.clientDist
-      ? path.resolve(cfg.clientDist)
-      : path.resolve(__dirname, '../../client/dist');
+    let clientDist = cfg.clientDist ? path.resolve(cfg.clientDist) : null;
+    if (!clientDist || !fs.existsSync(path.join(clientDist, 'index.html'))) {
+      const candidates = [
+        clientDist,
+        path.resolve(__dirname, '../../client/dist'),   // monorepo server/src or server/dist
+        path.resolve(__dirname, '../client-dist'),      // packaged standalone (server-dist/../client-dist)
+        path.resolve(__dirname, '../../client-dist'),
+        path.resolve(process.cwd(), 'client-dist'),
+        path.resolve(process.cwd(), 'client/dist'),
+      ].filter((p): p is string => Boolean(p));
+
+      for (const candidate of candidates) {
+        if (fs.existsSync(path.join(candidate, 'index.html'))) {
+          clientDist = candidate;
+          break;
+        }
+      }
+      if (!clientDist) {
+        clientDist = cfg.clientDist ? path.resolve(cfg.clientDist) : path.resolve(__dirname, '../../client/dist');
+      }
+    }
+
     // Gzip the dashboard bundle (1+ MB uncompressed). Mounted HERE — after
     // every API/proxy router and the error handler — so it only wraps the
     // static-file / SPA-fallback responses below it. The /v1 and /api handlers
@@ -343,6 +363,7 @@ export function createApp(config?: Config) {
     // or re-encoded by compression.
     app.use(compression());
     app.use(express.static(clientDist, {
+      dotfiles: 'allow',
       // Vite emits content-hashed build assets under assets/ (index-<hash>.js,
       // chunk-<hash>.js, *.css, fonts…). The URL changes whenever the bytes do,
       // so cache them for a year and mark them immutable. index.html and other
@@ -363,10 +384,23 @@ export function createApp(config?: Config) {
         next();
         return;
       }
+      const indexPath = path.join(clientDist, 'index.html');
+      if (!fs.existsSync(indexPath)) {
+        res.status(404).send('Router7 Web Dashboard not found. Ensure client assets are built.');
+        return;
+      }
       // Same no-cache policy as the statically-served index.html: SPA deep
       // links must revalidate so a redeploy propagates new asset URLs.
-      res.sendFile(path.join(clientDist, 'index.html'), {
+      // Explicit root + dotfiles: 'allow' avoids SendStream rejecting paths
+      // inside dot-prefixed directories like ~/.npm-global or ~/.nvm (#dotfiles).
+      res.sendFile('index.html', {
+        root: clientDist,
+        dotfiles: 'allow',
         headers: { 'Cache-Control': 'no-cache' },
+      }, (err) => {
+        if (err && !res.headersSent) {
+          next(err);
+        }
       });
     });
   }
