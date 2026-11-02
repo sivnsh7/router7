@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 # =====================================================================
 # Router7 One-Click Setup & Alias Installer
 # Configures 'r7' and 'router7' commands across all shells & ~/.local/bin
 # =====================================================================
+set -euo pipefail
 
 BOLD='\033[1m'
 GREEN='\033[0;32m'
@@ -48,7 +47,6 @@ if [ -n "$SYS_ROUTER7" ] && [ "$SYS_ROUTER7" != "$0" ] && [ "$SYS_ROUTER7" != "$
 fi
 
 # 3. If run from inside a cloned router7 repo
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 if [ -f "./cli/dist/index.js" ]; then
   exec node "./cli/dist/index.js" "$@"
 fi
@@ -59,7 +57,7 @@ EOF
 
 chmod +x "$LOCAL_BIN/r7"
 
-# Create symlink or duplicate for 'router7'
+# Create symlink for 'router7'
 ln -sf "$LOCAL_BIN/r7" "$LOCAL_BIN/router7"
 echo -e "${GREEN}✓ Created executable launchers in $LOCAL_BIN (r7, router7)${NC}"
 
