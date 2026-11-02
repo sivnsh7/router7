@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { ClayButton, buttonVariants } from '@/components/ui/clay-button'
@@ -190,34 +190,43 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
     setEditingKeyId(key.id)
   }
 
-  const healthKeyMap = new Map<number, { status: string; lastCheckedAt: string | null; lastHealthError: string | null }>()
-  for (const k of healthData?.keys ?? []) healthKeyMap.set(k.id, k)
+  const deferredSearch = useDeferredValue(search)
+  const q = deferredSearch.trim().toLowerCase()
+
+  const healthKeyMap = useMemo(() => {
+    const map = new Map<number, { status: string; lastCheckedAt: string | null; lastHealthError: string | null }>()
+    for (const k of healthData?.keys ?? []) map.set(k.id, k)
+    return map
+  }, [healthData])
+
   const statusOf = (k: ApiKey) => healthKeyMap.get(k.id)?.status ?? k.status
 
   // Group keys by provider and compute status categories
-  const grouped = [...PLATFORMS, CUSTOM_GROUP].map(p => {
-    const groupKeys = keys.filter(k => k.platform === p.value)
-    const { category, healthyCount, cooldownCount, errorCount } = computeProviderStatusCategory(groupKeys, statusOf)
-    return {
-      ...p,
-      keys: groupKeys,
-      statusCategory: category,
-      healthyCount,
-      cooldownCount,
-      errorCount,
-    }
-  }).filter(p => p.keys.length > 0)
+  const grouped = useMemo(() => {
+    return [...PLATFORMS, CUSTOM_GROUP].map(p => {
+      const groupKeys = keys.filter(k => k.platform === p.value)
+      const { category, healthyCount, cooldownCount, errorCount } = computeProviderStatusCategory(groupKeys, statusOf)
+      return {
+        ...p,
+        keys: groupKeys,
+        statusCategory: category,
+        healthyCount,
+        cooldownCount,
+        errorCount,
+      }
+    }).filter(p => p.keys.length > 0)
+  }, [keys, healthKeyMap])
 
   // Apply tactical priority sorting
-  const sortedGrouped = sortProviderGroups(grouped)
+  const sortedGrouped = useMemo(() => {
+    return sortProviderGroups(grouped)
+  }, [grouped])
 
   const totalProviders = sortedGrouped.length
-  const totalKeys = sortedGrouped.reduce((n, g) => n + g.keys.length, 0)
-  const totalHealthy = sortedGrouped.filter(g => g.statusCategory === 'healthy').length
-  const totalAttention = sortedGrouped.filter(g => g.statusCategory === 'attention').length
-  const totalDisabled = sortedGrouped.filter(g => g.statusCategory === 'disabled').length
-
-  const q = search.trim().toLowerCase()
+  const totalKeys = useMemo(() => sortedGrouped.reduce((n, g) => n + g.keys.length, 0), [sortedGrouped])
+  const totalHealthy = useMemo(() => sortedGrouped.filter(g => g.statusCategory === 'healthy').length, [sortedGrouped])
+  const totalAttention = useMemo(() => sortedGrouped.filter(g => g.statusCategory === 'attention').length, [sortedGrouped])
+  const totalDisabled = useMemo(() => sortedGrouped.filter(g => g.statusCategory === 'disabled').length, [sortedGrouped])
 
   function matchStatus(group: (typeof sortedGrouped)[number]): boolean {
     switch (statusFilter) {
@@ -228,19 +237,21 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
     }
   }
 
-  const visibleGroups = sortedGrouped
-    .map(group => {
-      if (!q) return group
-      if (group.label.toLowerCase().includes(q)) return group
-      const matchingKeys = group.keys.filter(k => keyMatchesQuery(k, q))
-      return { ...group, keys: matchingKeys }
-    })
-    .filter(group => group.keys.length > 0 && matchStatus(group))
+  const visibleGroups = useMemo(() => {
+    return sortedGrouped
+      .map(group => {
+        if (!q) return group
+        if (group.label.toLowerCase().includes(q)) return group
+        const matchingKeys = group.keys.filter(k => keyMatchesQuery(k, q))
+        return { ...group, keys: matchingKeys }
+      })
+      .filter(group => group.keys.length > 0 && matchStatus(group))
+  }, [sortedGrouped, q, statusFilter])
 
   function isGroupExpanded(group: (typeof sortedGrouped)[number]): boolean {
-    if (q) return true
     const override = groupOverrides.get(group.value)
     if (override !== undefined) return override
+    if (q) return visibleGroups.length <= 2
     return group.statusCategory === 'attention' || visibleGroups.length <= 2
   }
 

@@ -634,4 +634,32 @@ describe('median seeding for custom models (#488)', () => {
     const count = (getDb().prepare("SELECT COUNT(*) AS c FROM requests WHERE platform = 'custom'").get() as { c: number }).c;
     expect(count).toBe(1);
   });
+
+  it('probes a built-in provider key without throwing keyId does not name a custom endpoint', async () => {
+    const { body: added } = await post(app, '/api/keys', { platform: 'groq', key: 'gsk_test_valid' });
+    const mock = vi.fn(async () => jsonResponse({ object: 'list', data: [{ id: 'llama-3.3-70b-versatile' }] }));
+    globalThis.fetch = mock as any;
+
+    const { status, body } = await post(app, '/api/keys/custom/probe', { keyId: added.id });
+    expect(status).toBe(200);
+    expect(body.status).toBe('healthy');
+    expect(typeof body.latencyMs).toBe('number');
+    expect(body.modelId).toBeTruthy();
+  });
+
+  it('aliases /api/keys/probe to handle key probes', async () => {
+    const { body: added } = await post(app, '/api/keys', { platform: 'groq', key: 'gsk_test_alias' });
+    const mock = vi.fn(async () => jsonResponse({ object: 'list', data: [{ id: 'llama-3.3-70b-versatile' }] }));
+    globalThis.fetch = mock as any;
+
+    const { status, body } = await post(app, '/api/keys/probe', { keyId: added.id });
+    expect(status).toBe(200);
+    expect(body.status).toBe('healthy');
+  });
+
+  it('returns 404 when probing a nonexistent keyId', async () => {
+    const { status, body } = await post(app, '/api/keys/custom/probe', { keyId: 999999 });
+    expect(status).toBe(404);
+    expect(body.error.message).toMatch(/not found/i);
+  });
 });

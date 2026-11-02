@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useDeferredValue, useEffect } from 'react'
 import { Cpu, Search, Sparkles, Zap, Eye, Wrench, Brain, RefreshCw } from 'lucide-react'
 import { ClayButton } from '@/components/ui/clay-button'
 import { Switch } from '@/components/ui/switch'
@@ -44,15 +44,29 @@ export function ProviderModelsCard({
     })
   }, [allModels, platform, keyId])
 
+  const deferredSearch = useDeferredValue(search)
+
   // Filter by search term
   const filteredModels = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = deferredSearch.trim().toLowerCase()
     if (!q) return platformModels
     return platformModels.filter(m =>
       m.modelId.toLowerCase().includes(q) ||
       (m.displayName && m.displayName.toLowerCase().includes(q))
     )
-  }, [platformModels, search])
+  }, [platformModels, deferredSearch])
+
+  // Progressive pagination to prevent DOM thrashing with large model sets
+  const PAGE_SIZE = 25
+  const [displayLimit, setDisplayLimit] = useState(PAGE_SIZE)
+
+  useEffect(() => {
+    setDisplayLimit(PAGE_SIZE)
+  }, [deferredSearch, platform, keyId])
+
+  const visibleModels = useMemo(() => {
+    return filteredModels.slice(0, displayLimit)
+  }, [filteredModels, displayLimit])
 
   // Toggle model enabled/disabled mutation
   const toggleModel = useMutation({
@@ -276,89 +290,119 @@ export function ProviderModelsCard({
             </div>
           </div>
         ) : (
-          filteredModels.map((m) => {
-            const testState = modelTestState[m.id]
-            const isTesting = testState?.loading
-            const latency = testState?.latencyMs
+          <>
+            {visibleModels.map((m) => {
+              const testState = modelTestState[m.id]
+              const isTesting = testState?.loading
+              const latency = testState?.latencyMs
 
-            return (
-              <div
-                key={m.id}
-                className={`p-2 rounded-lg border transition-all ${
-                  m.enabled
-                    ? 'border-ink/20 bg-paper hover:border-ink/40'
-                    : 'border-ink/10 bg-paper/40 opacity-60'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-xs font-semibold text-ink truncate" title={m.modelId}>
-                        {m.displayName || m.modelId}
-                      </span>
-                      {m.displayName && m.displayName !== m.modelId && (
-                        <span className="font-mono text-[10px] text-ink-mute truncate">
-                          ({m.modelId})
+              return (
+                <div
+                  key={m.id}
+                  className={`p-2 rounded-lg border transition-all ${
+                    m.enabled
+                      ? 'border-ink/20 bg-paper hover:border-ink/40'
+                      : 'border-ink/10 bg-paper/40 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-xs font-semibold text-ink truncate" title={m.modelId}>
+                          {m.displayName || m.modelId}
                         </span>
-                      )}
+                        {m.displayName && m.displayName !== m.modelId && (
+                          <span className="font-mono text-[10px] text-ink-mute truncate">
+                            ({m.modelId})
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Capability Badges */}
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        {m.supportsVision && (
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[9px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300">
+                            <Eye className="size-2.5" />
+                            VISION
+                          </span>
+                        )}
+                        {m.supportsTools && (
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300">
+                            <Wrench className="size-2.5" />
+                            TOOLS
+                          </span>
+                        )}
+                        {m.contextWindow && (
+                          <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-paper-3 border border-ink/15 text-ink-mute">
+                            {Math.round(m.contextWindow / 1024)}k ctx
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Capability Badges */}
-                    <div className="mt-1 flex flex-wrap items-center gap-1">
-                      {m.supportsVision && (
-                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[9px] font-mono bg-cyan-500/10 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300">
-                          <Eye className="size-2.5" />
-                          VISION
-                        </span>
-                      )}
-                      {m.supportsTools && (
-                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300">
-                          <Wrench className="size-2.5" />
-                          TOOLS
-                        </span>
-                      )}
-                      {m.contextWindow && (
-                        <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-paper-3 border border-ink/15 text-ink-mute">
-                          {Math.round(m.contextWindow / 1024)}k ctx
-                        </span>
-                      )}
+                    {/* Actions: Ping Probe, Enabled Switch */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Live Ping Probe */}
+                      <button
+                        type="button"
+                        onClick={() => runModelTest(m)}
+                        disabled={isTesting || !hasActiveKey}
+                        title={hasActiveKey ? 'Ping model latency' : 'Requires configured active key'}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-paper hover:bg-clay-tint border border-ink/20 hover:border-clay text-ink transition-colors disabled:opacity-40"
+                      >
+                        <Zap className={`size-2.5 text-clay ${isTesting ? 'animate-spin' : ''}`} />
+                        {isTesting ? (
+                          <span>...</span>
+                        ) : latency != null ? (
+                          <span className="text-emerald-600 font-bold">{latency}ms</span>
+                        ) : testState?.error ? (
+                          <span className="text-rose-600 font-bold">Err</span>
+                        ) : (
+                          <span>Ping</span>
+                        )}
+                      </button>
+
+                      {/* Enable/Disable Switch */}
+                      <Switch
+                        size="sm"
+                        checked={m.enabled}
+                        onCheckedChange={(checked) => toggleModel.mutate({ id: m.id, enabled: checked })}
+                        aria-label="Toggle model enabled"
+                      />
                     </div>
-                  </div>
-
-                  {/* Actions: Ping Probe, Enabled Switch */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Live Ping Probe */}
-                    <button
-                      type="button"
-                      onClick={() => runModelTest(m)}
-                      disabled={isTesting || !hasActiveKey}
-                      title={hasActiveKey ? 'Ping model latency' : 'Requires configured active key'}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-paper hover:bg-clay-tint border border-ink/20 hover:border-clay text-ink transition-colors disabled:opacity-40"
-                    >
-                      <Zap className={`size-2.5 text-clay ${isTesting ? 'animate-spin' : ''}`} />
-                      {isTesting ? (
-                        <span>...</span>
-                      ) : latency != null ? (
-                        <span className="text-emerald-600 font-bold">{latency}ms</span>
-                      ) : testState?.error ? (
-                        <span className="text-rose-600 font-bold">Err</span>
-                      ) : (
-                        <span>Ping</span>
-                      )}
-                    </button>
-
-                    {/* Enable/Disable Switch */}
-                    <Switch
-                      size="sm"
-                      checked={m.enabled}
-                      onCheckedChange={(checked) => toggleModel.mutate({ id: m.id, enabled: checked })}
-                      aria-label="Toggle model enabled"
-                    />
                   </div>
                 </div>
+              )
+            })}
+
+            {filteredModels.length > visibleModels.length && (
+              <div className="pt-2 pb-1 flex flex-wrap items-center justify-between gap-2 border-t border-ink/15 text-xs font-mono">
+                <span className="text-ink-mute text-[11px]">
+                  Showing {visibleModels.length} of {filteredModels.length} models
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <ClayButton
+                    size="xs"
+                    variant="clay-secondary"
+                    onClick={() => setDisplayLimit(prev => Math.min(prev + 50, filteredModels.length))}
+                    className="text-[11px] py-0.5 px-2"
+                  >
+                    Load More (+50)
+                  </ClayButton>
+                  {filteredModels.length > 50 && (
+                    <ClayButton
+                      size="xs"
+                      variant="ghost"
+                      onClick={() => setDisplayLimit(filteredModels.length)}
+                      className="text-[10px] text-ink-mute hover:text-ink py-0.5 px-2"
+                    >
+                      Show All
+                    </ClayButton>
+                  )}
+                </div>
               </div>
-            )
-          })
+            )}
+          </>
         )}
       </div>
     </div>

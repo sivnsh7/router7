@@ -12,6 +12,7 @@ import { parseKeysFromFile, stripJsoncComments, stripTrailingCommas } from '../l
 import { assessProviderUrl } from '../lib/url-guard.js';
 import { verifyCredentials } from '../services/auth.js';
 import { getActiveCooldownsForKeys, clearCooldownsForKey } from '../services/ratelimit.js';
+import { checkKeyHealth } from '../services/health.js';
 import { getMonthlyBudgetCaps, getMonthlyUsage, nextMonthResetAt } from '../services/key-budget.js';
 import { resolveCustomEndpointKey, customEndpointKeyIds, siblingEndpointKeyId, endpointHasCredential } from '../services/custom-endpoint.js';
 import { registerCustomModels, registerCustomChatModels } from '../services/custom-model-register.js';
@@ -1181,17 +1182,57 @@ keysRouter.post('/discovered-models', (req: Request, res: Response) => {
   });
 });
 
-// POST /custom/probe — fire one minimal real chat request at the endpoint so an
-// unmeasured model gains a reliability/speed sample without waiting for natural
-// traffic (#685 follow-up). Interactive: the operator is watching, so a bounded
-// timeout and a clean error beat a silent 120s hang. Only a SUCCESSFUL probe
-// writes a `requests` row (which the stats cache folds into the bandit); a
-// failure (401 / timeout / unreachable) surfaces the reason and records nothing.
-keysRouter.post('/custom/probe', async (req: Request, res: Response) => {
+// POST /custom/probe (and POST /probe) — fire one minimal test or health check request
+// at the endpoint / provider so an unmeasured model gains a reliability/speed sample without waiting
+// for natural traffic (#685 follow-up). Supports both custom endpoints and built-in provider keys.
+// Interactive: the operator is watching, so a bounded timeout and a clean error beat a silent 120s hang.
+async function handleProbeEndpointOrKey(req: Request, res: Response) {
   const parsed = discoverModelsSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: { message: parsed.error.errors.map(e => e.message).join(', ') } });
     return;
+  }
+
+  // Handle probe for built-in provider keys (platform !== 'custom')
+  if (parsed.data.keyId !== undefined && parsed.data.baseUrl === undefined) {
+    const db = getDb();
+    const keyRow = db.prepare('SELECT id, platform, base_url FROM api_keys WHERE id = ?')
+      .get(parsed.data.keyId) as { id: number; platform: string; base_url: string | null } | undefined;
+
+    if (!keyRow) {
+      res.status(404).json({ error: { message: `Key #${parsed.data.keyId} not found` } });
+      return;
+    }
+
+    if (keyRow.platform !== 'custom') {
+      const startTime = Date.now();
+      const status = await checkKeyHealth(keyRow.id);
+      const latencyMs = Math.max(1, Date.now() - startTime);
+
+      const updatedRow = db.prepare('SELECT status, last_health_error FROM api_keys WHERE id = ?')
+        .get(keyRow.id) as { status: string; last_health_error: string | null } | undefined;
+
+      if (status !== 'healthy') {
+        const errorReason = updatedRow?.last_health_error || `Key validation failed for ${keyRow.platform} (status: ${status})`;
+        res.status(400).json({ error: { message: errorReason } });
+        return;
+      }
+
+      // Key is healthy! Lift any cooldowns holding it back
+      clearCooldownsForKey(keyRow.id);
+
+      // Find representative model for this platform to display in the success toast
+      const modelRow = (db.prepare('SELECT model_id FROM models WHERE platform = ? AND enabled = 1 ORDER BY id LIMIT 1').get(keyRow.platform) as { model_id: string } | undefined)
+        ?? (db.prepare('SELECT model_id FROM models WHERE platform = ? ORDER BY id LIMIT 1').get(keyRow.platform) as { model_id: string } | undefined);
+      const modelId = modelRow?.model_id ?? keyRow.platform;
+
+      res.json({
+        modelId,
+        latencyMs,
+        status: 'healthy',
+      });
+      return;
+    }
   }
 
   let endpoint: CustomEndpointRef;
@@ -1278,7 +1319,10 @@ keysRouter.post('/custom/probe', async (req: Request, res: Response) => {
     }
     res.status(502).json({ error: { message: `Probe failed: ${err?.message ?? 'unknown error'}` } });
   }
-});
+}
+
+keysRouter.post('/custom/probe', handleProbeEndpointOrKey);
+keysRouter.post('/probe', handleProbeEndpointOrKey);
 
 keysRouter.post('/custom', async (req: Request, res: Response) => {
   const parsed = customProviderSchema.safeParse(req.body);
