@@ -27,7 +27,7 @@ function printBanner(port: number, host: string) {
 / _, _/ /_/ / /_/ / /_/  __/ /     / /  
 /_/ |_|\\____/\\__,_/\\__/\\___/_/     /_/   
 
-🌐 Router7 AI Gateway & GUI Dashboard (v0.7.4)
+🌐 Router7 AI Gateway & GUI Dashboard (v0.7.5)
 ──────────────────────────────────────────────────────────
   Dashboard:        ${url}
   OpenAI Endpoint:  ${url}/v1
@@ -61,6 +61,12 @@ Examples:
 
 function openBrowser(url: string) {
   const platform = process.platform;
+
+  // Headless Linux check (Codespaces, SSH, Docker, VPS, cloud containers)
+  if (platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+    return;
+  }
+
   let cmd = '';
   let args: string[] = [];
 
@@ -77,9 +83,13 @@ function openBrowser(url: string) {
 
   try {
     const cp = spawn(cmd, args, { stdio: 'ignore', detached: true });
+    // Guard against unhandled error events when xdg-open/open is missing (e.g. ENOENT)
+    cp.on('error', () => {
+      // Non-blocking: silently ignore if no desktop browser is available
+    });
     cp.unref();
   } catch {
-    // Non-blocking: skip if no graphical environment
+    // Non-blocking: skip if spawn fails synchronously
   }
 }
 
@@ -192,7 +202,7 @@ function parseArgs(argv: string[]): ServerOptions {
       process.exit(0);
     }
     if (arg === '-v' || arg === '--version') {
-      console.log('router7 v0.7.4');
+      console.log('router7 v0.7.5');
       process.exit(0);
     }
     if (arg === '--no-open') {
@@ -274,14 +284,18 @@ async function main() {
     process.exit(code ?? 0);
   });
 
-  // Once server is ready, open browser
+  // Once server is ready, open browser (if desktop environment available)
   if (!options.noOpen) {
     const ready = await waitForReady(options.host, targetPort);
     if (ready) {
       const displayHost = options.host === '0.0.0.0' ? '127.0.0.1' : options.host;
       const targetUrl = `http://${displayHost}:${targetPort}`;
-      console.log(`🚀 Opening dashboard at ${targetUrl}...\n`);
-      openBrowser(targetUrl);
+      if (process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+        console.log(`ℹ️  Headless environment detected. Open ${targetUrl} in your browser.\n`);
+      } else {
+        console.log(`🚀 Opening dashboard at ${targetUrl}...\n`);
+        openBrowser(targetUrl);
+      }
     }
   }
 }

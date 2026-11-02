@@ -9,9 +9,9 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cliEntry = path.resolve(__dirname, '../dist/index.js');
 
-test('r7 --version prints version 0.7.4', async () => {
+test('r7 --version prints version 0.7.5', async () => {
   const { stdout } = await execFileAsync(process.execPath, [cliEntry, '--version']);
-  assert.match(stdout, /router7 v0\.7\.4/);
+  assert.match(stdout, /router7 v0\.7\.5/);
 });
 
 test('r7 --help prints usage for starting the server and dashboard', async () => {
