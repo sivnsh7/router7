@@ -22,7 +22,7 @@ function getVersion(): string {
   } catch {
     // fallback if package.json read fails
   }
-  return '0.7.7';
+  return '0.7.8';
 }
 
 interface ServerOptions {

@@ -84,7 +84,7 @@ if (-not $hasNode) {
 }
 
 # ---------------------------------------------------------------------
-# 2. Setup r7.cmd & router7.cmd Launchers
+# 2. Setup r7 & router7 Launchers (CMD + PowerShell)
 # ---------------------------------------------------------------------
 $localBin = Join-Path $env:USERPROFILE ".local\bin"
 New-Item -ItemType Directory -Force -Path $localBin | Out-Null
@@ -92,16 +92,49 @@ New-Item -ItemType Directory -Force -Path $localBin | Out-Null
 $wrapperScript = @'
 @echo off
 setlocal
-where router7 >nul 2>nul
-if %ERRORLEVEL% equ 0 (
-  router7 %*
-) else (
-  npx -y router7 %*
+rem 1. Check standard global npm locations
+if exist "%APPDATA%\npm\node_modules\router7\dist\index.js" (
+  node "%APPDATA%\npm\node_modules\router7\dist\index.js" %*
+  exit /b %ERRORLEVEL%
 )
+if exist "%LOCALAPPDATA%\npm\node_modules\router7\dist\index.js" (
+  node "%LOCALAPPDATA%\npm\node_modules\router7\dist\index.js" %*
+  exit /b %ERRORLEVEL%
+)
+if exist "%USERPROFILE%\.local\lib\nodejs\node-current\node_modules\router7\dist\index.js" (
+  node "%USERPROFILE%\.local\lib\nodejs\node-current\node_modules\router7\dist\index.js" %*
+  exit /b %ERRORLEVEL%
+)
+
+rem 2. Fallback to npx
+npx -y router7 %*
+exit /b %ERRORLEVEL%
+'@
+
+$ps1Wrapper = @'
+$npmApp = Join-Path $env:APPDATA "npm\node_modules\router7\dist\index.js"
+if (Test-Path $npmApp) {
+    & node $npmApp $args
+    exit $LASTEXITCODE
+}
+$localApp = Join-Path $env:LOCALAPPDATA "npm\node_modules\router7\dist\index.js"
+if (Test-Path $localApp) {
+    & node $localApp $args
+    exit $LASTEXITCODE
+}
+$standalone = Join-Path $env:USERPROFILE ".local\lib\nodejs\node-current\node_modules\router7\dist\index.js"
+if (Test-Path $standalone) {
+    & node $standalone $args
+    exit $LASTEXITCODE
+}
+& npx -y router7 $args
+exit $LASTEXITCODE
 '@
 
 Set-Content -Path (Join-Path $localBin "r7.cmd") -Value $wrapperScript -Encoding ASCII
 Set-Content -Path (Join-Path $localBin "router7.cmd") -Value $wrapperScript -Encoding ASCII
+Set-Content -Path (Join-Path $localBin "r7.ps1") -Value $ps1Wrapper -Encoding UTF8
+Set-Content -Path (Join-Path $localBin "router7.ps1") -Value $ps1Wrapper -Encoding UTF8
 
 # If npm global folder exists, also place wrappers there for immediate resolution
 try {
@@ -111,6 +144,8 @@ try {
         if (Test-Path $npmPrefix) {
             Set-Content -Path (Join-Path $npmPrefix "r7.cmd") -Value $wrapperScript -Encoding ASCII
             Set-Content -Path (Join-Path $npmPrefix "router7.cmd") -Value $wrapperScript -Encoding ASCII
+            Set-Content -Path (Join-Path $npmPrefix "r7.ps1") -Value $ps1Wrapper -Encoding UTF8
+            Set-Content -Path (Join-Path $npmPrefix "router7.ps1") -Value $ps1Wrapper -Encoding UTF8
         }
     }
 } catch {}
@@ -121,7 +156,7 @@ if ($userPath -notmatch [regex]::Escape($localBin)) {
     [Environment]::SetEnvironmentVariable("Path", "$localBin;$userPath", "User")
 }
 $env:Path = "$localBin;" + $env:Path
-Write-Host "✓ Created executable launchers (r7.cmd, router7.cmd)" -ForegroundColor Green
+Write-Host "✓ Created executable launchers (r7.cmd, router7.cmd, r7.ps1, router7.ps1)" -ForegroundColor Green
 
 # ---------------------------------------------------------------------
 # 3. Configure PowerShell Profile Aliases

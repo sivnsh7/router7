@@ -188,24 +188,34 @@ for bin_dir in "${TARGET_BINS[@]}"; do
 # Router7 CLI Launcher
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
-# 1. If globally installed via npm, run directly with node
+# 1. If globally installed via npm in ~/.npm-global (instant)
+if [ -f "$HOME/.npm-global/lib/node_modules/router7/dist/index.js" ]; then
+  exec node "$HOME/.npm-global/lib/node_modules/router7/dist/index.js" "$@"
+fi
+
+# 2. Check system npm global directory
 NPM_GLOBAL="$(npm root -g 2>/dev/null || true)/router7/dist/index.js"
 if [ -n "$NPM_GLOBAL" ] && [ -f "$NPM_GLOBAL" ]; then
   exec node "$NPM_GLOBAL" "$@"
 fi
 
-# 2. If system-installed router7 exists in PATH (excluding this wrapper)
+# 3. Check standalone node installation in ~/.local/lib/nodejs
+if [ -f "$HOME/.local/lib/nodejs/node-current/lib/node_modules/router7/dist/index.js" ]; then
+  exec node "$HOME/.local/lib/nodejs/node-current/lib/node_modules/router7/dist/index.js" "$@"
+fi
+
+# 4. If system-installed router7 exists in PATH (excluding this wrapper)
 SYS_ROUTER7="$(type -P router7 2>/dev/null || true)"
 if [ -n "$SYS_ROUTER7" ] && [ "$SYS_ROUTER7" != "$0" ] && [ "$SYS_ROUTER7" != "$HOME/.local/bin/r7" ] && [ "$SYS_ROUTER7" != "$HOME/.local/bin/router7" ] && [ "$SYS_ROUTER7" != "/usr/local/bin/r7" ] && [ "$SYS_ROUTER7" != "/usr/local/bin/router7" ]; then
   exec "$SYS_ROUTER7" "$@"
 fi
 
-# 3. If run from inside a cloned router7 repo
+# 5. If run from inside a cloned router7 repo
 if [ -f "./cli/dist/index.js" ]; then
   exec node "./cli/dist/index.js" "$@"
 fi
 
-# 4. Fallback: Run via npx (zero installation needed)
+# 6. Fallback: Run via npx (zero installation needed)
 exec npx -y router7 "$@"
 EOF
 
@@ -216,7 +226,7 @@ done
 echo -e "${GREEN}✓ Created executable launchers (r7, router7)${NC}"
 
 # ---------------------------------------------------------------------
-# 3. Target Shell Configuration Files & Aliases
+# 3. Target Shell Configuration Files & Functions
 # ---------------------------------------------------------------------
 RC_FILES=()
 for candidate in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.bash_profile"; do
@@ -241,14 +251,22 @@ for rc in "${RC_FILES[@]}"; do
     MODIFIED=1
   fi
 
-  # Ensure aliases are present
-  if ! grep -q "alias r7=" "$rc" 2>/dev/null; then
-    printf "alias r7='npx -y router7'\n" >> "$rc"
-    MODIFIED=1
+  # Ensure r7 function or alias is present with argument preservation
+  if ! grep -q "r7()" "$rc" 2>/dev/null && ! grep -q "alias r7=" "$rc" 2>/dev/null; then
+    cat << 'EOF' >> "$rc"
+r7() {
+  if [ -x "$HOME/.local/bin/r7" ]; then
+    "$HOME/.local/bin/r7" "$@"
+  elif [ -x "/usr/local/bin/r7" ]; then
+    "/usr/local/bin/r7" "$@"
+  else
+    npx -y router7 "$@"
   fi
-
-  if ! grep -q "alias router7=" "$rc" 2>/dev/null; then
-    printf "alias router7='npx -y router7'\n" >> "$rc"
+}
+router7() {
+  r7 "$@"
+}
+EOF
     MODIFIED=1
   fi
 
