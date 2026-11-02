@@ -14,16 +14,27 @@ Running **`r7`** or **`router7`** boots the gateway server and immediately launc
 
 ## ⚡ Quick Start
 
-### 1. 1-Click Automated Setup (Recommended)
-Copy and paste this single command into your terminal:
+### 1. 1-Click Automated Setup by Operating System
 
+#### 🐧 Linux & 🍎 macOS (Bash / Zsh)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
 ```
 
+#### 🪟 Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex
+```
+
+#### 🪟 Windows (Command Prompt / CMD)
+```cmd
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex"
+```
+
 Everything will be configured automatically:
-- Configures `~/.local/bin/r7` and `~/.local/bin/router7`
-- Injects aliases into your shell (`~/.bashrc`, `~/.zshrc`, etc.)
+- Checks/installs Node.js v22 LTS automatically if not present
+- Configures `r7` and `router7` executable launchers in PATH
+- Injects aliases into your shell (`.bashrc`, `.zshrc`, PowerShell `$PROFILE`, etc.)
 - You can immediately type `r7` in your terminal to start the tool!
 
 ```bash

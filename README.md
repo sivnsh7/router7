@@ -81,17 +81,30 @@ Router7 translates standard REST requests across all major modalities:
 
 ### 1-Click Automated Setup (Recommended)
 
-Run this single command in your terminal to automatically configure the `r7` command, executable wrappers, and shell aliases:
+Choose your operating system below to configure dependencies (Node.js v22 LTS), executable wrappers, and `r7` aliases automatically:
 
+#### 🐧 Linux & 🍎 macOS (Bash / Zsh)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
 ```
 
-Once configured, simply run:
+#### 🪟 Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex
+```
+
+#### 🪟 Windows (Command Prompt / CMD)
+```cmd
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex"
+```
+
+---
+
+Once installed, simply run:
 ```bash
 r7
 ```
-This immediately starts the gateway server and launches the interactive dashboard at `http://localhost:3001` in your browser!
+This boots the gateway server and launches the interactive dashboard at `http://localhost:3001` in your browser!
 
 ---
 
@@ -200,16 +213,27 @@ Router7 is **100% GUI-driven**. All integrations, model mappings, and configurat
 
 Router7 provides the **`r7`** command (and full alias **`router7`**) to start the gateway server and immediately launch the web dashboard in your default browser.
 
-### 1. 1-Click Automated Setup (Recommended)
-Copy and paste this single command into your terminal:
+### 1. 1-Click Automated Setup by Operating System
 
+#### 🐧 Linux & 🍎 macOS (Bash / Zsh)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sivnsh7/router7/main/install.sh | bash
 ```
 
+#### 🪟 Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex
+```
+
+#### 🪟 Windows (Command Prompt / CMD)
+```cmd
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/sivnsh7/router7/main/install.ps1 | iex"
+```
+
 Everything will be configured automatically:
-- Configures `~/.local/bin/r7` and `~/.local/bin/router7`
-- Injects aliases into your shell (`~/.bashrc`, `~/.zshrc`, etc.)
+- Checks/installs Node.js v22 LTS automatically if not present
+- Configures `r7` and `router7` executable launchers in PATH
+- Injects aliases into your shell (`.bashrc`, `.zshrc`, PowerShell `$PROFILE`, etc.)
 - You can immediately type `r7` in your terminal to start the tool!
 
 ```bash
