@@ -35,6 +35,7 @@ import { Tooltip } from '@/components/tooltip'
 import { SUPPORTED_LOCALES, type Locale, useI18n } from '@/i18n'
 import { type Theme, useTheme } from '@/theme-context'
 import { apiFetch } from '@/lib/api'
+import { ThemeToggleButton } from '@/components/ui/skiper-ui/skiper26'
 
 // Small info affordance used next to labels a first-time user can't be expected
 // to understand. It's a real <button> so it reaches the tooltip by keyboard
@@ -581,6 +582,22 @@ function GeneralSection({ active }: { active: boolean }) {
             ariaLabel={t('settings.theme')}
             className="w-full grid-cols-3 sm:w-64"
           />
+        )}
+      />
+      <Row
+        label="Tactile Ripple Theme Toggle"
+        control={(
+          <div className="flex items-center gap-3">
+            <ThemeToggleButton
+              variant="circle"
+              start="center"
+              blur={false}
+              className="size-8"
+            />
+            <span className="text-xs font-mono text-muted-foreground">
+              Circular Ripple Wave
+            </span>
+          </div>
         )}
       />
       <UpdateChecker active={active} />

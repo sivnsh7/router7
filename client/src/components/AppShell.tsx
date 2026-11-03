@@ -5,6 +5,7 @@ import { TopBar, PAGE_TITLE_MAP } from './TopBar'
 import { MobileNavigationSheet } from './MobileNavigationSheet'
 import { HalftoneWave } from './ui/halftone-wave'
 import { NeonMesh } from './ui/neon-mesh'
+import { ScrollProgress } from './ui/scroll-progress'
 import { DESKTOP_GLOBALS, type DesktopWindow } from '@/lib/desktop-contract'
 import { useI18n } from '@/i18n'
 
@@ -59,6 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={`flex flex-col ${isPlayground ? 'h-dvh overflow-hidden' : 'min-h-screen'} ${isMacDesktop ? 'desktop-backdrop' : 'bg-paper'}`}>
+      <ScrollProgress className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-gradient-to-r from-[var(--clay)] via-[var(--red)] to-[var(--green)] origin-left pointer-events-none" />
       <MobileNavigationSheet open={mobileSheetOpen} onClose={closeMobileSheet} />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">

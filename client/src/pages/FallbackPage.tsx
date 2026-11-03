@@ -51,6 +51,8 @@ import { PeakHoursControls } from '@/components/peak-hours-controls'
 import { ChainManager } from '@/components/chain-manager'
 import { RaisedCard } from '@/components/ui/clay-card'
 import { useReveal, Reveal } from '@/components/ui/motion'
+import { KnockoutBracket } from '@/components/ui/skiper-ui/skiper107'
+import MorphingSidebarControls from '@/components/ui/morphing-sidebar-controls'
 
 // `tKey` is the i18n suffix under `strategies.*` (label) and `strategies.*Blurb`.
 // It differs from the routing `key` for Manual, whose strategy id is 'priority'.
@@ -111,6 +113,7 @@ export default function FallbackPage() {
   const [filterVision, setFilterVision] = useState(false)
   const [filterTools, setFilterTools] = useState(false)
   const [minContext, setMinContext] = useState(0)
+  const [showArena, setShowArena] = useState(true)
 
   // The table edits the ACTIVE chain, so it is part of this query's identity
   // (#1021): keyed on 'fallback' alone, switching chains in the manager below
@@ -495,6 +498,26 @@ export default function FallbackPage() {
                   onSave={p => strategyMutation.mutate({ strategy, ...p })}
                 />
               )}
+
+              <div className="w-full mt-4 pt-4 border-t border-ink/15">
+                <div className="mb-2 text-xs font-mono font-bold uppercase tracking-widest text-clay">
+                  ROUTER7 ENGINE MORPHING TUNING CONTROLS
+                </div>
+                <div className="flex justify-center w-full">
+                  <MorphingSidebarControls
+                    title="Engine Dynamics"
+                    primaryFeatureName="Adaptive Failover"
+                    secondaryFeatureName="Stream Pipelining"
+                    asymmetricOptionsName="Asymmetric Fallback"
+                    tabs={['Latency Gate', 'TTFT Clamp']}
+                    types={['Fastest', 'Resilient']}
+                    configOptions={[
+                      { label: 'Max Concurrency', value: '64' },
+                      { label: 'Timeout (s)', value: '30' },
+                    ]}
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -502,8 +525,35 @@ export default function FallbackPage() {
         </div>
       </Reveal>
 
-      <ChainManager />
-      <PenaltyInspector />
+          <Reveal staggerIndex={1}>
+            <RaisedCard elevation="medium" className="p-5">
+              <ChainManager />
+            </RaisedCard>
+          </Reveal>
+
+          <Reveal staggerIndex={1.2}>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase font-mono tracking-widest text-clay font-bold flex items-center gap-2">
+                  ✦ MODEL ARENA // BENCHMARK
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowArena(s => !s)}
+                  className="text-xs font-mono text-ink-mute hover:text-ink transition-colors underline underline-offset-4"
+                >
+                  {showArena ? "Hide Bracket" : "Show Knockout Bracket"}
+                </button>
+              </div>
+              {showArena && <KnockoutBracket />}
+            </div>
+          </Reveal>
+
+          <Reveal staggerIndex={2}>
+            <RaisedCard elevation="medium" className="p-5">
+              <PenaltyInspector />
+            </RaisedCard>
+          </Reveal>
 
         {/* Unified routing / fallback table */}
         {isLoading ? (

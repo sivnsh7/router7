@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { ClayButton } from '@/components/ui/clay-button'
 import { ClayInput } from '@/components/ui/clay-input'
+import { SmoothInput } from '@/components/ui/skiper-ui/skiper106'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { ModelCombobox } from '@/components/model-combobox'
@@ -250,12 +251,13 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
               aria-invalid={addAttempted && !!keyError}
             />
           ) : (
-            <ClayInput
+            <SmoothInput
               type="password"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
               placeholder={isKeyless ? t('keys.keyOptionalPlaceholder') : (needsAccountId ? t('keys.bearerTokenPlaceholder') : t('keys.pasteKeyPlaceholder'))}
-              className="font-mono text-xs"
+              className="font-mono text-xs text-ink"
+              wrapperClassName="w-full bg-paper-3 border border-ink/20 rounded-lg p-2"
               aria-invalid={addAttempted && !!keyError}
             />
           )}

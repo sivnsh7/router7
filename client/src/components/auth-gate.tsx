@@ -11,6 +11,7 @@ import { isEmail } from '@/lib/validate'
 import { useI18n } from '@/i18n'
 import { toast } from '@/lib/toast'
 import { BrandLockup } from './brand-lockup'
+import { SwapForm } from '@/components/ui/swap-form'
 
 // Matches the server rule (routes/auth.ts zod schema).
 const PASSWORD_MIN = 8
@@ -60,6 +61,7 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
   const [busy, setBusy] = useState(false)
   const [attempted, setAttempted] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
+  const [visualSwap, setVisualSwap] = useState(false)
 
   const isSetup = currentMode === 'setup'
   const isRegister = currentMode === 'register'
@@ -118,6 +120,30 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
     return <ForgotPasswordForm onBack={() => setShowForgot(false)} />
   }
 
+  if (visualSwap && mode !== 'setup') {
+    return (
+      <Centered>
+        <div className="mb-6 flex flex-col items-center justify-center gap-3">
+          <BrandLockup />
+          <button
+            type="button"
+            onClick={() => setVisualSwap(false)}
+            className="text-xs font-mono text-ink-mute hover:text-ink underline"
+          >
+            Switch to Standard View
+          </button>
+        </div>
+        <SwapForm
+          isSignIn={currentMode === 'login'}
+          onModeChange={(isSign) => {
+            setCurrentMode(isSign ? 'login' : 'register')
+            setError('')
+          }}
+        />
+      </Centered>
+    )
+  }
+
   return (
     <Centered>
       <div className="mb-6 flex items-center justify-center">
@@ -125,28 +151,38 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
       </div>
       <div className="rounded-2xl border-[2.5px] border-ink bg-paper-3 p-6 shadow-sh2">
         {mode !== 'setup' && (
-          <div className="mb-5 flex rounded-xl border border-ink/20 bg-paper-2/80 p-1">
+          <div className="mb-5 flex items-center justify-between gap-2">
+            <div className="flex-1 flex rounded-xl border border-ink/20 bg-paper-2/80 p-1">
+              <button
+                type="button"
+                onClick={() => { setCurrentMode('login'); setError(''); setAttempted(false) }}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
+                  currentMode === 'login'
+                    ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
+                    : 'text-ink-mute hover:text-ink'
+                }`}
+              >
+                {t('auth.signIn')}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setCurrentMode('register'); setError(''); setAttempted(false) }}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
+                  currentMode === 'register'
+                    ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
+                    : 'text-ink-mute hover:text-ink'
+                }`}
+              >
+                {t('auth.createAccount')}
+              </button>
+            </div>
             <button
               type="button"
-              onClick={() => { setCurrentMode('login'); setError(''); setAttempted(false) }}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
-                currentMode === 'login'
-                  ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
-                  : 'text-ink-mute hover:text-ink'
-              }`}
+              onClick={() => setVisualSwap(true)}
+              className="text-[10px] font-mono text-ink-mute hover:text-ink px-2 py-1.5 rounded-lg border border-ink/20 hover:bg-paper-2 transition-colors shrink-0"
+              title="Switch to 3D Flip Form"
             >
-              {t('auth.signIn')}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setCurrentMode('register'); setError(''); setAttempted(false) }}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-mono font-medium transition-all ${
-                currentMode === 'register'
-                  ? 'bg-red text-paper-3 dark:text-white shadow-sh1 font-bold'
-                  : 'text-ink-mute hover:text-ink'
-              }`}
-            >
-              {t('auth.createAccount')}
+              Flip Mode
             </button>
           </div>
         )}

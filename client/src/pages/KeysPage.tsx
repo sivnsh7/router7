@@ -20,6 +20,7 @@ import { ProviderChecklistSection } from '@/components/keys/provider-checklist-s
 import { AddKeyDialog } from '@/components/keys/add-key-dialog'
 import { ExportKeysDialog } from '@/components/keys/export-keys-dialog'
 import { AgentCompatibilitySection } from '@/components/keys/agent-compatibility-section'
+import { GatewayEndpointIllustration } from '@/components/ui/gateway-endpoint-illustration'
 
 type KeysTab = 'providers' | 'quotaSignals' | 'apiKey' | 'anthropic' | 'agents'
 
@@ -163,6 +164,28 @@ export default function KeysPage() {
       <div className="space-y-8">
         {tab === 'apiKey' && (
           <div className="space-y-6">
+            <RaisedCard elevation="low" className="p-6 border-[2px] border-ink bg-paper-3 overflow-hidden">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="space-y-2 max-w-md">
+                  <span className="text-xs font-mono uppercase tracking-widest text-clay font-bold">
+                    UNIFIED GATEWAY INGRESS TOPOLOGY
+                  </span>
+                  <h3 className="text-lg font-bold font-display tracking-tight text-ink">
+                    Multi-Protocol Ingress & Provider Multiplexing
+                  </h3>
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    Any OpenAI, Anthropic, or Gemini client routes transparently through Router7. Local proxy handles automatic rate-limit failovers, quota tracking, and lowest-latency selection across Inception Labs, LiteRouter, and frontier models.
+                  </p>
+                </div>
+                <div className="w-full md:w-auto flex justify-center">
+                  <GatewayEndpointIllustration
+                    width={420}
+                    height={210}
+                    className="w-full max-w-[420px] h-auto drop-shadow-sm"
+                  />
+                </div>
+              </div>
+            </RaisedCard>
             <UnifiedKeySection />
             <ClientProfilesSection />
             <ProxySettingsSection />

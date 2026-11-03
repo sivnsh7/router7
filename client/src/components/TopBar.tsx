@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Menu, Search, Settings, LogOut, KeyRound, Sun, Moon } from 'lucide-react'
+import { Menu, Search, Settings, LogOut, KeyRound } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { logout } from '@/lib/api'
 import { openCommandPalette } from '@/components/command-palette-state'
 import { useTheme } from '@/theme-context'
 import { ChangeCredentialsModal } from '@/components/auth-gate'
 import { SettingsDialog } from '@/components/settings-dialog'
+import { ThemeToggleButton2 } from '@/components/ui/skiper-ui/skiper4'
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform)
 
@@ -160,7 +161,6 @@ export function TopBar({
   const toggleTheme = () => {
     setTheme(resolvedDark ? 'light' : 'dark')
   }
-  const themeIcon = resolvedDark ? <Moon className="size-4" /> : <Sun className="size-4" />
 
   return (
     <header
@@ -202,15 +202,13 @@ export function TopBar({
 
           <div className="h-4 w-px bg-ink/15 mx-0.5" />
 
-          <button
-            type="button"
-            onClick={toggleTheme}
+          <ThemeToggleButton2
+            isDark={resolvedDark}
+            onToggle={toggleTheme}
             aria-label={resolvedDark ? t('nav.switchLight') : t('nav.switchDark')}
             title={resolvedDark ? t('nav.switchLight') : t('nav.switchDark')}
-            className="flex size-8 items-center justify-center rounded-lg text-ink-soft hover:bg-paper-3 hover:text-ink transition-colors"
-          >
-            {themeIcon}
-          </button>
+            className="size-7 p-1 bg-transparent hover:bg-paper-3 text-ink-soft hover:text-ink border-0"
+          />
 
           <div className="h-4 w-px bg-ink/15 mx-0.5" />
 
