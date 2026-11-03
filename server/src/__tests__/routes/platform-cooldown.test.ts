@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import type { Express } from 'express';
 import { createApp } from '../../app.js';
-import { initDb, getDb, getUnifiedApiKey } from '../../db/index.js';
+import { initDb, getDb } from '../../db/index.js';
 import { mintDashboardToken } from '../helpers/auth.js';
 import { encrypt } from '../../lib/crypto.js';
 import { setCooldown, isOnCooldown } from '../../services/ratelimit.js';

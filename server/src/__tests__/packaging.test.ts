@@ -17,8 +17,8 @@ describe('Release packaging hygiene and security checks', () => {
   });
 
   it('prohibits local encryption key or live database in git tracking', () => {
-    const serverDataDb = resolve(__dirname, '../../data/router7.db');
-    const encKey = resolve(__dirname, '../../data/.encryption-key');
+    const _serverDataDb = resolve(__dirname, '../../data/router7.db');
+    const _encKey = resolve(__dirname, '../../data/.encryption-key');
     // If files happen to be on disk during testing, ensure they are not tracked or staged
     const packageScript = resolve(__dirname, '../../../scripts/package-release.mjs');
     expect(existsSync(packageScript)).toBe(true);

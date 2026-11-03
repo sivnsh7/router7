@@ -23,7 +23,7 @@ name: CLI release
 #
 # One-time setup on npmjs.com (Package settings → Trusted Publisher):
 #   Organization or user: sivnsh7
-#   Repository:           freellmapi
+#   Repository:           router7
 #   Workflow filename:    cli-release.yml
 # Trusted publishing cannot bootstrap a package that does not exist yet — npm
 # has no package settings page to configure until the first version is up — so
@@ -68,22 +68,23 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           # `npm view` exits non-zero for an unpublished name/version; an empty
           # result is the signal to publish, not an error.
-          PUBLISHED=$(npm view "freellmapi@$VERSION" version 2>/dev/null || true)
+          PUBLISHED=$(npm view "router7@$VERSION" version 2>/dev/null || true)
           if [ -n "$PUBLISHED" ]; then
-            echo "freellmapi@$VERSION is already on the registry — nothing to do."
+            echo "router7@$VERSION is already on the registry — nothing to do."
             echo "should-publish=false" >> "$GITHUB_OUTPUT"
           else
-            echo "freellmapi@$VERSION is not published yet."
+            echo "router7@$VERSION is not published yet."
             echo "should-publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # `npm publish` runs cli's prepublishOnly (build + test) as a safety net.
-      # Building here as well keeps a broken tsc from reaching the publish step.
-      - name: Build and test the CLI
+      # Build all workspaces so server/dist and client/dist exist before cli packaging.
+      - name: Build workspaces
         if: steps.version.outputs.should-publish == 'true'
-        run: |
-          npm run build -w cli
-          npm run test -w cli
+        run: npm run build
+
+      - name: Test the CLI
+        if: steps.version.outputs.should-publish == 'true'
+        run: npm run test -w cli
 
       - name: Smoke-test the packed tarball
         if: steps.version.outputs.should-publish == 'true'
@@ -96,8 +97,8 @@ jobs:
           mkdir -p "$WORKDIR" && cd "$WORKDIR"
           npm init -y >/dev/null
           npm install "$RUNNER_TEMP/$TARBALL" >/dev/null
-          npx freellmapi --help
-          npx freellmapi list >/dev/null
+          npx router7 --help
+          npx r7 --version
 
       # No NODE_AUTH_TOKEN: the OIDC credential comes from id-token: write.
       # Provenance is attached automatically under trusted publishing.
@@ -110,7 +111,7 @@ jobs:
         run: |
           V="${{ steps.version.outputs.version }}"
           if [ "${{ steps.version.outputs.should-publish }}" = "true" ]; then
-            echo "Published freellmapi@$V" >> "$GITHUB_STEP_SUMMARY"
+            echo "Published router7@$V" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "freellmapi@$V is already on the registry — skipped." >> "$GITHUB_STEP_SUMMARY"
+            echo "router7@$V is already on the registry — skipped." >> "$GITHUB_STEP_SUMMARY"
           fi

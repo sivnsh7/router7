@@ -399,7 +399,7 @@ settingsRouter.put('/api-key', (req: Request, res: Response) => {
     return;
   }
   const cleanKey = apiKey.trim();
-  if (!/^[A-Za-z0-9_\-\.]+$/.test(cleanKey)) {
+  if (!/^[A-Za-z0-9_.-]+$/.test(cleanKey)) {
     res.status(400).json({ error: 'API key contains invalid characters (allowed: alphanumeric, _, -, .)' });
     return;
   }

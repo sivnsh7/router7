@@ -42,8 +42,9 @@
   ],
   "scripts": {
     "build": "tsc",
+    "lint": "tsc --noEmit",
     "bundle": "node ../scripts/bundle-standalone.mjs",
-    "test": "node --test src/index.test.mjs",
+    "test": "npm run build && node --test src/index.test.mjs",
     "prepublishOnly": "npm run build && npm run bundle && npm test"
   },
   "dependencies": {
