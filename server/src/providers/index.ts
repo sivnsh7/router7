@@ -555,6 +555,23 @@ register(new OpenAICompatProvider({
 // priority); a registered aihorde.net key raises priority. See issue #345.
 register(new AIHordeProvider());
 
+// Inception Labs (api.inceptionlabs.ai) — Diffusion Large Language Models
+// (dLLMs) including Mercury-3, Mercury Voice, and Mercury Decide.
+// Standard OpenAI-compatible Bearer API.
+register(new OpenAICompatProvider({
+  platform: 'inceptionlabs',
+  name: 'Inception Labs',
+  baseUrl: 'https://api.inceptionlabs.ai/v1',
+}));
+
+// LiteRouter (api.literouter.com) — Unified multi-model AI routing gateway.
+// Standard OpenAI-compatible Bearer API.
+register(new OpenAICompatProvider({
+  platform: 'literouter',
+  name: 'LiteRouter',
+  baseUrl: 'https://api.literouter.com/v1',
+}));
+
 // Placeholder so getProvider('custom')/hasProvider('custom')/getAllProviders()
 // behave — but the real instance is built per-key by resolveProvider(), since
 // a custom provider's base URL is user-supplied and lives on the api_keys row.

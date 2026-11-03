@@ -88,6 +88,10 @@ describe('key parser', () => {
     expect(detectPlatform('SEPTOR_')).toBe('septor');
     expect(detectPlatform('SEPTORLABS_')).toBe('septor');
     expect(detectPlatform('SEPTOR_LABS_')).toBe('septor');
+    expect(detectPlatform('INCEPTION_')).toBe('inceptionlabs');
+    expect(detectPlatform('INCEPTIONLABS_')).toBe('inceptionlabs');
+    expect(detectPlatform('LITEROUTER_')).toBe('literouter');
+    expect(detectPlatform('LITE_ROUTER_')).toBe('literouter');
     expect(detectPlatform('SAMBANOVA_')).toBeNull();
   });
 
@@ -113,6 +117,10 @@ describe('key parser', () => {
     expect(AUTH_JSON_PROVIDER_MAP['router-9']).toBe('router9');
     expect(AUTH_JSON_PROVIDER_MAP['septor']).toBe('septor');
     expect(AUTH_JSON_PROVIDER_MAP['septor-labs']).toBe('septor');
+    expect(AUTH_JSON_PROVIDER_MAP['inceptionlabs']).toBe('inceptionlabs');
+    expect(AUTH_JSON_PROVIDER_MAP['inception-labs']).toBe('inceptionlabs');
+    expect(AUTH_JSON_PROVIDER_MAP['literouter']).toBe('literouter');
+    expect(AUTH_JSON_PROVIDER_MAP['lite-router']).toBe('literouter');
     expect(AUTH_JSON_PROVIDER_MAP['septorlabs']).toBe('septor');
     expect(AUTH_JSON_PROVIDER_MAP['lucidity']).toBe('lucidity');
     expect(AUTH_JSON_PROVIDER_MAP['airforce']).toBe('airforce');

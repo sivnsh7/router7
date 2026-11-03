@@ -84,6 +84,8 @@ export const PLATFORMS: { value: Platform; label: string; url: string; keyless?:
   { value: 'anyapi', label: 'AnyAPI (free key)', url: 'https://anyapi.ai' },
   { value: 'modelscope', label: 'ModelScope (free key, needs Aliyun cn binding)', url: 'https://modelscope.cn/my/myaccesstoken' },
   { value: 'aihorde', label: 'AI Horde (no key needed, slow)', url: 'https://aihorde.net/register', keyless: true },
+  { value: 'inceptionlabs', label: 'Inception Labs (Mercury dLLM)', url: 'https://inceptionlabs.ai' },
+  { value: 'literouter', label: 'LiteRouter (Multi-model)', url: 'https://literouter.com' },
   // Chinese domestic providers. All four gate API access behind real-name
   // verification on the cloud account, so the label says so up front rather
   // than letting a user mint a key that 401s on every call (the ModelScope

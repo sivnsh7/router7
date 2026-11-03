@@ -136,6 +136,11 @@ export const PREFIX_MAP: Record<string, string> = {
   XFYUN_: 'xfyun',
   SPARK_: 'xfyun',
   IFLYTEK_: 'xfyun',
+  INCEPTION_: 'inceptionlabs',
+  INCEPTIONLABS_: 'inceptionlabs',
+  INCEPTION_LABS_: 'inceptionlabs',
+  LITEROUTER_: 'literouter',
+  LITE_ROUTER_: 'literouter',
 };
 
 export const AUTH_JSON_PROVIDER_MAP: Record<string, string> = {
@@ -216,6 +221,11 @@ export const AUTH_JSON_PROVIDER_MAP: Record<string, string> = {
   xfyun: 'xfyun',
   spark: 'xfyun',
   iflytek: 'xfyun',
+  inceptionlabs: 'inceptionlabs',
+  'inception-labs': 'inceptionlabs',
+  inception: 'inceptionlabs',
+  literouter: 'literouter',
+  'lite-router': 'literouter',
 };
 
 export function detectPlatform(prefix: string): string | null {

@@ -233,6 +233,13 @@ export type Platform =
   // aihorde.net key raises queue priority. Has a dedicated AIHordeProvider that
   // normalizes the proxy's OpenAI divergences. See issue #345.
   | 'aihorde'
+  // Inception Labs (api.inceptionlabs.ai) — Diffusion Large Language Models
+  // (dLLMs) including Mercury-3, Mercury Voice, and Mercury Decide.
+  // OpenAI-compatible Bearer API.
+  | 'inceptionlabs'
+  // LiteRouter (api.literouter.com) — Unified multi-model AI routing gateway.
+  // OpenAI-compatible Bearer API.
+  | 'literouter'
   // User-configured OpenAI-compatible endpoint (llama.cpp, LM Studio, vLLM,
   // Ollama, any base_url). The endpoint URL lives on the api_keys row; see #117.
   | 'custom';

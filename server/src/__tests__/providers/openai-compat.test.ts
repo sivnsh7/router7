@@ -674,6 +674,8 @@ describe('OpenAICompatProvider - platform instances', () => {
     // modelscope registers a ModelScopeProvider subclass (custom validateKey,
     // see providers/modelscope.test.ts) but chat routing is stock openai-compat.
     { platform: 'modelscope', name: 'ModelScope',    baseUrl: 'https://api-inference.modelscope.cn/v1' },
+    { platform: 'inceptionlabs', name: 'Inception Labs', baseUrl: 'https://api.inceptionlabs.ai/v1' },
+    { platform: 'literouter', name: 'LiteRouter',    baseUrl: 'https://api.literouter.com/v1' },
   ] as const;
 
   for (const p of platforms) {
