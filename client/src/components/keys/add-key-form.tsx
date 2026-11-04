@@ -13,7 +13,8 @@ import { useI18n } from '@/i18n'
 import { toast } from '@/lib/toast'
 import type { FallbackEntry } from '@/lib/routing'
 import { scopeCandidates, shouldOfferModelPicker, type ScopeCandidate } from '@/lib/model-scope-selection'
-import { GetKeyLink, PLATFORMS } from './shared'
+import { GetKeyLink, PLATFORMS, ALL_PLATFORMS } from './shared'
+import { ProviderLogo } from '@/components/provider-logo'
 
 /** A key that just landed, plus the models the picker should offer for it.
  *  Only produced when the picker is actually worth showing (#657) — otherwise
@@ -76,10 +77,12 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
 
   // Whether the key that just landed is worth offering the picker for, and the
   // rows to offer. Anything missing — no id back, a keyless sentinel, a catalog
+  // Whether the key that just landed is worth offering the picker for, and the
+  // rows to offer. Anything missing — no id back, a keyless sentinel, a catalog
   // too small or not loaded — returns undefined, and the add stays silent.
   function scopeOffer(keyId: number | undefined, added: string, key: string): AddedKeyScopeOffer | undefined {
     if (typeof keyId !== 'number') return undefined
-    const provider = PLATFORMS.find(p => p.value === added)
+    const provider = ALL_PLATFORMS.find(p => p.value === added)
     // An anonymous row on a key-optional gateway is excluded from scope editing
     // on the key row too: no credential means nothing was bought per model
     // group. A real key saved there is an ordinary key (#1331).
@@ -89,18 +92,48 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
     return { keyId, platformLabel: provider.label, candidates }
   }
 
-  const platformOptions = useMemo(
-    () => PLATFORMS
+  const platformOptions = useMemo(() => {
+    const list = PLATFORMS
       // The selected provider always stays listed, so hiding added ones never
       // blanks out the trigger label.
       .filter(p => !hideAdded || !addedPlatforms.has(p.value) || p.value === platform)
       .map(p => ({
         value: p.value,
         label: p.label,
+        icon: <ProviderLogo platform={p.value} className="size-4 shrink-0" />,
+        badge: (
+          <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-medium uppercase ${
+            p.category === 'oauth'
+              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+              : p.category === 'gateway'
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+          }`}>
+            {p.category}
+          </span>
+        ),
         sub: addedPlatforms.has(p.value) ? t('keys.discoverAlreadyAdded') : undefined,
-      })),
-    [hideAdded, addedPlatforms, platform, t],
-  )
+      }));
+
+    if (platform && !list.some(p => p.value === platform)) {
+      const extra = ALL_PLATFORMS.find(p => p.value === platform);
+      if (extra) {
+        list.push({
+          value: extra.value,
+          label: extra.label,
+          icon: <ProviderLogo platform={extra.value} className="size-4 shrink-0" />,
+          badge: (
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium uppercase bg-zinc-100 text-zinc-700">
+              {extra.category}
+            </span>
+          ),
+          sub: undefined,
+        });
+      }
+    }
+
+    return list;
+  }, [hideAdded, addedPlatforms, platform, t]);
 
   const addKey = useMutation({
     meta: { silenceToast: true },
@@ -140,7 +173,7 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
   const needsAccountId = platform === 'cloudflare'
   // Key-optional providers (Kilo, OVH, AI Horde) work anonymously, but accept a
   // real key too (#1331): the field stays editable and may be left blank.
-  const isKeyless = PLATFORMS.find(p => p.value === platform)?.keyless ?? false
+  const isKeyless = ALL_PLATFORMS.find(p => p.value === platform)?.keyless ?? false
   // Cloudflare pairs each token with an account id, and a key-optional
   // provider keeps a single anonymous row, so neither takes a list.
   const canPasteSeveral = !isKeyless && !needsAccountId
@@ -211,7 +244,7 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
           />
           {addAttempted && <FieldError error={platformError} />}
           {(() => {
-            const sel = PLATFORMS.find(p => p.value === platform)
+            const sel = ALL_PLATFORMS.find(p => p.value === platform)
             return sel?.url ? <div className="pt-0.5"><GetKeyLink url={sel.url} /></div> : null
           })()}
         </div>

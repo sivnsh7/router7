@@ -22,6 +22,7 @@ import { warnOnRoutingOverrideDrift } from './services/model-weight-overrides.js
 import { installLogRedaction } from './lib/log-redaction.js';
 import { cleanupExpiredCooldowns } from './services/ratelimit.js';
 import { loadCacheFromDb } from './services/cache.js';
+import { startModelProbeVerifier } from './services/model-probe-verifier.js';
 
 // Before any other statement runs, so no provider key can reach stdout — users
 // paste server output into bug reports. Module scope, not inside main(), so it
@@ -89,6 +90,7 @@ async function main() {
     startCustomModelSync(getDb(), scheduler);
     startBuiltinModelDiscovery(getDb(), scheduler);
     startProviderAutoSync(getDb(), scheduler);
+    startModelProbeVerifier(getDb(), scheduler);
 
     // Post-sleep recovery: while the host was suspended (laptop lid, VM
     // pause) timers and keep-alive sockets froze, so the first requests after

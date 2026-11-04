@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import type { Model } from '../../../../shared/types'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { ProviderLogo } from '@/components/provider-logo'
 
 interface ProviderModelsCardProps {
   platform: string
@@ -175,6 +176,7 @@ export function ProviderModelsCard({
       {/* Tactical Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 bg-paper-3 border-b-[2px] border-ink">
         <div className="flex items-center gap-2">
+          <ProviderLogo platform={platform} className="size-4 shrink-0" />
           <Cpu className="size-4 text-clay" />
           <span className="font-mono text-xs font-bold uppercase tracking-wider text-ink">
             Intelligence Matrix

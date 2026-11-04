@@ -242,7 +242,65 @@ export type Platform =
   | 'literouter'
   // User-configured OpenAI-compatible endpoint (llama.cpp, LM Studio, vLLM,
   // Ollama, any base_url). The endpoint URL lives on the api_keys row; see #117.
-  | 'custom';
+  | 'custom'
+  // ── Newly Added Providers ─────────────────────────────────────────────────
+  // Antigravity (Google DeepMind agentic platform) — OAuth-based authentication.
+  | 'antigravity'
+  // GitHub Copilot — OAuth token authentication.
+  | 'copilot'
+  // OpenAI Codex — OAuth-based token authentication.
+  | 'codex'
+  // OpenReference — OAuth-based authentication.
+  | 'openreference'
+  // Codestral API — Mistral code generation API.
+  | 'codestral'
+  // Dahl API — Neural model inference API.
+  | 'dahl'
+  // AgentRouter API — Multi-agent routing gateway.
+  | 'agentrouter'
+  // FastRouter API — High-speed AI routing gateway.
+  | 'fastrouter'
+  // LLM Gateway API — Unified multi-model gateway API.
+  | 'llmgateway';
+
+// Provider ways of use / categorization
+export type ProviderCategory = 'oauth' | 'api' | 'gateway';
+
+export const OAUTH_PLATFORMS: ReadonlySet<string> = new Set([
+  'antigravity',
+  'copilot',
+  'codex',
+  'openreference',
+]);
+
+export const GATEWAY_PLATFORMS: ReadonlySet<string> = new Set([
+  'agentrouter',
+  'fastrouter',
+  'llmgateway',
+  'openrouter',
+  'kilo',
+  'literouter',
+  'routeway',
+  'bazaarlink',
+  'unorouter',
+  'requesty',
+  'navy',
+  'nara',
+  'aion',
+  'ainative',
+  'anyapi',
+  'bai',
+  'airforce',
+  'logfare',
+  'electronhub',
+  'custom',
+]);
+
+export function getProviderCategory(platform: string): ProviderCategory {
+  if (OAUTH_PLATFORMS.has(platform)) return 'oauth';
+  if (GATEWAY_PLATFORMS.has(platform)) return 'gateway';
+  return 'api';
+}
 
 export interface Model {
   id: number;

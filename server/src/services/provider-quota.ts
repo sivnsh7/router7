@@ -176,6 +176,15 @@ export function inferPoolForPlatform(platform: Platform, modelId?: string | null
   if (platform === 'modelscope') return 'modelscope::account';
   if (platform === 'inceptionlabs') return 'inceptionlabs::account';
   if (platform === 'literouter') return 'literouter::account';
+  if (platform === 'antigravity') return 'antigravity::oauth';
+  if (platform === 'copilot') return 'copilot::oauth';
+  if (platform === 'codex') return 'codex::oauth';
+  if (platform === 'openreference') return 'openreference::oauth';
+  if (platform === 'codestral') return 'codestral::api';
+  if (platform === 'dahl') return 'dahl::api';
+  if (platform === 'agentrouter') return 'agentrouter::gateway';
+  if (platform === 'fastrouter') return 'fastrouter::gateway';
+  if (platform === 'llmgateway') return 'llmgateway::gateway';
   return normalizedModelId ? `${platform}::${normalizedModelId}` : `${platform}::account`;
 }
 
@@ -183,7 +192,7 @@ function isSharedPool(platform: Platform): boolean {
   if (platform === 'aclide') return true;
   if (platform === 'speka') return true;
   if (['electronhub', 'experiential', 'router9', 'septor', 'clod', 'speechify', 'blaze', 'lucidity', 'airforce', 'dreamprompting', 'waterfall', 'logfare'].includes(platform)) return true;
-  return ['openrouter', 'google', 'groq', 'cerebras', 'sail', 'bai', 'radeon', 'sambanova', 'nvidia', 'mistral', 'github', 'cohere', 'cloudflare', 'zhipu', 'ollama', 'kilo', 'pollinations', 'llm7', 'huggingface', 'opencode', 'routeway', 'bazaarlink', 'ainative', 'aion', 'requesty', 'navy', 'nara', 'sealion', 'orcarouter', 'unorouter', 'xkiro', 'anyapi', 'modelscope', 'aihorde', 'inceptionlabs', 'literouter'].includes(platform);
+  return ['openrouter', 'google', 'groq', 'cerebras', 'sail', 'bai', 'radeon', 'sambanova', 'nvidia', 'mistral', 'github', 'cohere', 'cloudflare', 'zhipu', 'ollama', 'kilo', 'pollinations', 'llm7', 'huggingface', 'opencode', 'routeway', 'bazaarlink', 'ainative', 'aion', 'requesty', 'navy', 'nara', 'sealion', 'orcarouter', 'unorouter', 'xkiro', 'anyapi', 'modelscope', 'aihorde', 'inceptionlabs', 'literouter', 'antigravity', 'copilot', 'codex', 'openreference', 'codestral', 'dahl', 'agentrouter', 'fastrouter', 'llmgateway'].includes(platform);
 }
 
 type HeaderSpec = { metric: QuotaMetric; limit: string; remaining?: string; reset?: string; strategy?: QuotaResetStrategy };

@@ -21,6 +21,8 @@ export interface ModelComboOption {
    * "no image support" while the Playground has an image attached).
    */
   note?: string
+  icon?: ReactNode
+  badge?: ReactNode
 }
 
 export function ModelCombobox({
@@ -63,7 +65,8 @@ export function ModelCombobox({
   const filtered = q
     ? options.filter(o => `${o.label} ${o.sub ?? ''} ${o.value} ${(o.platforms ?? []).join(' ')}`.toLowerCase().includes(q))
     : options
-  const triggerLabel = options.find(o => o.value === value)?.label ?? value
+  const selectedOpt = options.find(o => o.value === value)
+  const triggerLabel = selectedOpt?.label ?? value
 
   function pick(v: string) {
     onSelect(v)
@@ -105,7 +108,12 @@ export function ModelCombobox({
           'flex h-8 w-[260px] items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-input bg-transparent px-3 text-sm outline-none transition-colors hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30'
         }
       >
-        <span className={`truncate ${triggerLabel ? '' : 'text-muted-foreground'}`} title={triggerLabel || undefined}>{triggerLabel || triggerPlaceholder}</span>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {selectedOpt?.icon}
+          <span className={`truncate ${triggerLabel ? '' : 'text-muted-foreground'}`} title={triggerLabel || undefined}>
+            {triggerLabel || triggerPlaceholder}
+          </span>
+        </div>
         <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent align={align} className="w-[300px] p-0" onKeyDown={onKeyDown}>
@@ -147,7 +155,9 @@ export function ModelCombobox({
                 }`}
               >
                 <Check className={`size-4 shrink-0 ${o.value === value ? 'opacity-100' : 'opacity-0'}`} />
+                {o.icon}
                 <span className={`min-w-0 flex-1 truncate ${o.note ? 'opacity-50' : ''}`} title={o.label}>{o.label}</span>
+                {o.badge}
                 {o.note && (
                   <span className="rounded px-1 py-0.5 text-[9px] font-semibold uppercase leading-none tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400">
                     {o.note}

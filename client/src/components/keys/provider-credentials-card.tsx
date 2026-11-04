@@ -7,6 +7,7 @@ import { ConfirmButton } from '@/components/confirm-button'
 import { CooldownTimer } from './cooldown-timer'
 import type { ApiKey } from '../../../../shared/types'
 import { statusDot } from './shared'
+import { ProviderLogo } from '@/components/provider-logo'
 
 interface ProviderCredentialsCardProps {
   platform: string
@@ -26,6 +27,7 @@ interface ProviderCredentialsCardProps {
 }
 
 export function ProviderCredentialsCard({
+  platform,
   keys,
   statusOf,
   healthKeyMap,
@@ -53,6 +55,7 @@ export function ProviderCredentialsCard({
       {/* Tactical Header */}
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-paper-3 border-b-[2px] border-ink">
         <div className="flex items-center gap-2">
+          <ProviderLogo platform={platform} className="size-4 shrink-0" />
           <KeyRound className="size-4 text-clay" />
           <span className="font-mono text-xs font-bold uppercase tracking-wider text-ink">
             Credentials Vault

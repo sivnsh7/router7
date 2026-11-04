@@ -48,6 +48,8 @@ export const keysRouter = Router();
 // was dropped in V4 and re-added in V13 via the router.huggingface.co route.
 // SambaNova was dropped in V23 (free tier permanently retired).
 const PLATFORMS = [
+  // Newly added providers:
+  'antigravity', 'copilot', 'codex', 'openreference', 'codestral', 'dahl', 'agentrouter', 'fastrouter', 'llmgateway',
   'aclide',
   'speka',
   'llmtr',

@@ -18,8 +18,25 @@ import { qualifiedModelMemberId } from '../lib/endpoint-scope.js';
 import { overriddenFieldNames } from '../services/model-state.js';
 import { parseModelScope, scopeAllows } from '../lib/model-scope.js';
 import { getQuotaOutlook } from '../services/quota-outlook.js';
+import { isModelFailed, isProviderFailed, getModelProbeSummary, runModelProbePass } from '../services/model-probe-verifier.js';
+import { isRemovedPlatform } from '../providers/index.js';
 
 export const fallbackRouter = Router();
+
+// Endpoint for inspecting background model verification status and error-code differentiation
+fallbackRouter.get('/probe-status', (_req: Request, res: Response) => {
+  res.json(getModelProbeSummary(getDb()));
+});
+
+// Endpoint to trigger manual verification pass on demand
+fallbackRouter.post('/probe-run', async (_req: Request, res: Response) => {
+  try {
+    const result = await runModelProbePass(getDb());
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: String(err?.message || err) });
+  }
+});
 
 // Dashboard-session authenticated by app.ts. Polling only reads saved quota
 // observations and request history, never provider endpoints or key material.
@@ -265,7 +282,9 @@ fallbackRouter.get('/', (req: Request, res: Response) => {
     }
   }
 
-  res.json(rows.map(r => {
+  const activeRows = rows.filter(r => !isProviderFailed(db, r.platform) && !isModelFailed(db, r.platform, r.model_id, r.endpoint_scope));
+
+  res.json(activeRows.map(r => {
     const penalty = penaltyMap.get(r.model_db_id);
     const group = groupByDbId.get(r.model_db_id);
     return {

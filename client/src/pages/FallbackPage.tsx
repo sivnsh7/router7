@@ -19,6 +19,7 @@ import { Boxes, ChevronDown, Search, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useI18n } from '@/i18n'
 import { apiFetch } from '@/lib/api'
+import { toast } from '@/lib/toast'
 import {
   buildGroups,
   clampRankToIndex,
@@ -171,6 +172,31 @@ export default function FallbackPage() {
     () => new Map((rateLimitUsage?.rows ?? []).map(r => [r.modelDbId, r])),
     [rateLimitUsage],
   )
+
+  const { data: probeStatus, refetch: refetchProbe } = useQuery<{
+    summary?: {
+      totalChecked: number;
+      passed200: number;
+      failed: number;
+      byErrorCode: Record<number, number>;
+    };
+  }>({
+    queryKey: ['fallback', 'probe-status'],
+    queryFn: () => apiFetch('/api/fallback/probe-status'),
+    refetchInterval: 30_000,
+  })
+
+  const runProbe = useMutation({
+    mutationFn: () => apiFetch('/api/fallback/probe-run', { method: 'POST' }),
+    onSuccess: (data: any) => {
+      refetchProbe()
+      queryClient.invalidateQueries({ queryKey: ['fallback'] })
+      toast.success(`Verification complete: ${data?.ok200 ?? 0} OK (200), ${data?.failed ?? 0} failed/hidden`)
+    },
+    onError: (err: any) => {
+      toast.error(`Verification error: ${err instanceof Error ? err.message : String(err)}`)
+    },
+  })
 
   const saveMutation = useMutation({
     mutationFn: (data: { modelDbId: number; priority: number; enabled: boolean }[]) =>
@@ -354,6 +380,42 @@ export default function FallbackPage() {
 
           {/* Monthly token budget — moved to the top */}
           {tokenUsage && tokenUsage.totalBudget > 0 && <TokenUsageBar data={tokenUsage} />}
+
+          {/* Model probe status & failure isolation banner */}
+          {probeStatus?.summary && probeStatus.summary.totalChecked > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl border-[2px] border-ink bg-paper-2 shadow-sh1">
+              <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
+                <span className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
+                  {probeStatus.summary.passed200} Verified 200 OK Models
+                </span>
+                <span className="text-ink-mute">|</span>
+                <span className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                  {probeStatus.summary.failed} Failed & Hidden from Fallback
+                </span>
+                {Object.entries(probeStatus.summary.byErrorCode || {}).map(([code, count]) => (
+                  <span
+                    key={code}
+                    className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                    title={`HTTP ${code} error code breakdown`}
+                  >
+                    HTTP {code}: {count}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs font-mono"
+                  disabled={runProbe.isPending}
+                  onClick={() => runProbe.mutate()}
+                >
+                  {runProbe.isPending ? 'Verifying...' : 'Re-verify Failed Models'}
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Strategy selector */}
           <RaisedCard elevation="medium" className="p-5">

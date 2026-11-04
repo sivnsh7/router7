@@ -33,6 +33,9 @@ import { modelsWithOverriddenField } from './model-state.js';
 import { parseBudget } from '../lib/budget.js';
 import { platformDropsResponseFormat } from '../lib/sampling-params.js';
 import { isUnifyEnabled, getModelGroups, resolveRequestedIdForDispatch } from './model-groups.js';
+import { isModelFailed, isProviderFailed } from './model-probe-verifier.js';
+import { isRemovedPlatform } from '../providers/index.js';
+import { judgeModelById } from './model-id-intelligence.js';
 import { getActiveProfileId } from './profile-models.js';
 import { customEndpointKeyIds } from './custom-endpoint.js';
 import { isDegraded } from './degradation.js';
@@ -1001,6 +1004,7 @@ function scoreChainEntry(
   const stats = statsCache?.get(modelStatsKey(entry.platform, entry.model_id, entry.endpoint_scope));
   const successes = stats?.successes ?? 0;
   const failures = stats?.failures ?? 0;
+  const judgment = judgeModelById(entry.model_id, entry.platform);
 
   const community = activeCommunityPrior(entry.platform, entry.model_id, entry.endpoint_scope);
   let reliability: number;
@@ -1012,8 +1016,11 @@ function scoreChainEntry(
   }
 
   const speed = speedScore(stats?.tokPerSec ?? 0, stats?.avgTtfbMs ?? null);
+
+  const effectiveSizeLabel = entry.size_label || judgment.sizeLabel;
+  const effectiveIntelligenceRank = entry.intelligence_rank ?? judgment.intelligenceRank;
   const intelligence = intelligenceScore(
-    intelligenceComposite(entry.size_label, entry.intelligence_rank), intelMin, intelMax,
+    intelligenceComposite(effectiveSizeLabel, effectiveIntelligenceRank), intelMin, intelMax,
   );
 
   // Scale the per-key monthly budget by the usable key count for this platform,
@@ -1180,8 +1187,8 @@ const GLOBAL_SORT_ALIASES: Record<string, string> = {
  */
 function getActiveChain(db: Db): ChainRow[] {
   const profileId = getActiveProfileId(db);
-  if (profileId != null) {
-    return db.prepare(`
+  const rows = profileId != null
+    ? db.prepare(`
       SELECT pm.model_db_id, pm.priority, pm.enabled,
              m.platform, m.model_id, m.display_name, m.intelligence_rank,
              m.size_label, m.monthly_token_budget,
@@ -1191,26 +1198,26 @@ function getActiveChain(db: Db): ChainRow[] {
       JOIN models m ON m.id = pm.model_db_id AND m.enabled = 1
       WHERE pm.profile_id = ?
       ORDER BY pm.priority ASC
-    `).all(profileId) as ChainRow[];
-  }
+    `).all(profileId) as ChainRow[]
+    : db.prepare(`
+      SELECT fc.model_db_id, fc.priority, fc.enabled,
+             m.platform, m.model_id, m.display_name, m.intelligence_rank,
+             m.size_label, m.monthly_token_budget,
+             m.rpm_limit, m.rpd_limit, m.tpm_limit, m.tpd_limit, m.supports_vision,
+             m.supports_tools, m.context_window, m.key_id, m.endpoint_scope
+      FROM fallback_config fc
+      JOIN models m ON m.id = fc.model_db_id AND m.enabled = 1
+      ORDER BY fc.priority ASC
+    `).all() as ChainRow[];
 
-  return db.prepare(`
-    SELECT fc.model_db_id, fc.priority, fc.enabled,
-           m.platform, m.model_id, m.display_name, m.intelligence_rank,
-           m.size_label, m.monthly_token_budget,
-           m.rpm_limit, m.rpd_limit, m.tpm_limit, m.tpd_limit, m.supports_vision,
-           m.supports_tools, m.context_window, m.key_id, m.endpoint_scope
-    FROM fallback_config fc
-    JOIN models m ON m.id = fc.model_db_id AND m.enabled = 1
-    ORDER BY fc.priority ASC
-  `).all() as ChainRow[];
+  return rows.filter(r => !isProviderFailed(db, r.platform) && !isModelFailed(db, r.platform, r.model_id, r.endpoint_scope));
 }
 
 function getChainByProfileName(db: Db, name: string): ChainRow[] | null {
   const profile = db.prepare("SELECT id FROM profiles WHERE LOWER(name) = ?").get(name.toLowerCase()) as { id: number } | undefined;
   if (!profile) return null;
 
-  return db.prepare(`
+  const rows = db.prepare(`
     SELECT pm.model_db_id, pm.priority, pm.enabled,
            m.platform, m.model_id, m.display_name, m.intelligence_rank,
            m.size_label, m.monthly_token_budget,
@@ -1221,6 +1228,8 @@ function getChainByProfileName(db: Db, name: string): ChainRow[] | null {
     WHERE pm.profile_id = ?
     ORDER BY pm.priority ASC
   `).all(profile.id) as ChainRow[];
+
+  return rows.filter(r => !isProviderFailed(db, r.platform) && !isModelFailed(db, r.platform, r.model_id, r.endpoint_scope));
 }
 
 function getChainByGlobalSort(db: Db, globalAxis: string): ChainRow[] {
@@ -1244,6 +1253,8 @@ function getChainByGlobalSort(db: Db, globalAxis: string): ChainRow[] {
     WHERE m.enabled = 1 AND ${chainEnabled}
   `).all(...(profileId != null ? [profileId] : [])) as ChainRow[];
 
+  const filtered = allEnabled.filter(r => !isProviderFailed(db, r.platform) && !isModelFailed(db, r.platform, r.model_id, r.endpoint_scope));
+
   const strategyMap: Record<string, RoutingStrategy> = {
     'smart': 'smartest',
     'fast': 'fastest',
@@ -1253,7 +1264,7 @@ function getChainByGlobalSort(db: Db, globalAxis: string): ChainRow[] {
   };
   const strat = strategyMap[globalAxis] || 'balanced';
   
-  return orderChain(allEnabled, strat);
+  return orderChain(filtered, strat);
 }
 
 /**

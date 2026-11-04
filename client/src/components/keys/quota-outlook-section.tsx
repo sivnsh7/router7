@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { ClayButton } from '@/components/ui/clay-button'
-import { PLATFORMS } from './shared'
+import { ALL_PLATFORMS } from './shared'
 
 function OutlookPool({ pool, generatedAt, windowMinutes, minimumRequests }: {
   pool: QuotaOutlookPool; generatedAt: string; windowMinutes: number; minimumRequests: number
@@ -26,7 +26,7 @@ function OutlookPool({ pool, generatedAt, windowMinutes, minimumRequests }: {
     : pool.status === 'exhausted' ? t('keys.outlookExhausted')
     : pool.unavailableReason ? t('keys.outlookUnavailable') : unknown
   const reportedOnly = pool.unavailableReason != null
-  const name = PLATFORMS.find(platform => platform.value === pool.platform)?.label ?? pool.platform
+  const name = ALL_PLATFORMS.find(platform => platform.value === pool.platform)?.label ?? pool.platform
   return (
     <article aria-label={name} className={cn('p-4 sm:p-5', pool.warning && 'bg-amber-500/5')}>
       <div className="flex items-start justify-between gap-3">

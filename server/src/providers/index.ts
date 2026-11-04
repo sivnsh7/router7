@@ -572,6 +572,76 @@ register(new OpenAICompatProvider({
   baseUrl: 'https://api.literouter.com/v1',
 }));
 
+// ── Newly Added Providers (OAuth, API, Gateways) ───────────────────────────
+
+// Antigravity — Google DeepMind agentic AI platform via OAuth token.
+register(new OpenAICompatProvider({
+  platform: 'antigravity',
+  name: 'Antigravity (OAuth)',
+  baseUrl: 'https://api.antigravity.dev/v1',
+}));
+
+// GitHub Copilot — OpenAI-compatible inference via GitHub OAuth token.
+register(new OpenAICompatProvider({
+  platform: 'copilot',
+  name: 'GitHub Copilot (OAuth)',
+  baseUrl: 'https://api.githubcopilot.com',
+  extraHeaders: {
+    'Editor-Version': 'vscode/1.95.0',
+    'Editor-Plugin-Version': 'copilot-chat/0.22.0',
+    'User-Agent': 'GitHubCopilot/1.22.0',
+  },
+}));
+
+// OpenAI Codex — OAuth-based platform inference.
+register(new OpenAICompatProvider({
+  platform: 'codex',
+  name: 'OpenAI Codex (OAuth)',
+  baseUrl: 'https://api.openai.com/v1',
+}));
+
+// OpenReference — OAuth-based decentralized reference inference.
+register(new OpenAICompatProvider({
+  platform: 'openreference',
+  name: 'OpenReference (OAuth)',
+  baseUrl: 'https://api.openreference.ai/v1',
+}));
+
+// Codestral API — Mistral AI dedicated coding model endpoint.
+register(new OpenAICompatProvider({
+  platform: 'codestral',
+  name: 'Codestral API',
+  baseUrl: 'https://codestral.mistral.ai/v1',
+}));
+
+// Dahl API — OpenAI-compatible inference gateway.
+register(new OpenAICompatProvider({
+  platform: 'dahl',
+  name: 'Dahl API',
+  baseUrl: 'https://api.dahl.ai/v1',
+}));
+
+// AgentRouter API — Multi-agent routing gateway.
+register(new OpenAICompatProvider({
+  platform: 'agentrouter',
+  name: 'AgentRouter',
+  baseUrl: 'https://api.agentrouter.ai/v1',
+}));
+
+// FastRouter API — Ultra-low latency model routing gateway.
+register(new OpenAICompatProvider({
+  platform: 'fastrouter',
+  name: 'FastRouter',
+  baseUrl: 'https://api.fastrouter.io/v1',
+}));
+
+// LLM Gateway API — Unified aggregator gateway.
+register(new OpenAICompatProvider({
+  platform: 'llmgateway',
+  name: 'LLM Gateway',
+  baseUrl: 'https://api.llmgateway.io/v1',
+}));
+
 // Placeholder so getProvider('custom')/hasProvider('custom')/getAllProviders()
 // behave — but the real instance is built per-key by resolveProvider(), since
 // a custom provider's base URL is user-supplied and lives on the api_keys row.
@@ -584,6 +654,18 @@ register(new OpenAICompatProvider({
 // Locally-hosted inference (llama.cpp / vLLM / Ollama on CPU) can be slow, so
 // custom providers get the same extended timeout as Ollama Cloud.
 const CUSTOM_PROVIDER_TIMEOUT_MS = 120000;
+
+export const REMOVED_PROVIDERS: ReadonlySet<string> = new Set([
+  'aclide', 'speka', 'llmtr', 'moondream', 'groq', 'cerebras', 'router9', 'experiential',
+  'septor', 'clod', 'speechify', 'blaze', 'lucidity', 'dreamprompting', 'waterfall',
+  'radeon', 'mistral', 'zhipu', 'pollinations', 'llm7', 'huggingface', 'opencode',
+  'reka', 'siliconflow', 'orcarouter', 'xkiro', 'modelscope', 'qianfan', 'volcengine',
+  'longcat', 'xfyun', 'aihorde',
+]);
+
+export function isRemovedPlatform(platform: string): boolean {
+  return REMOVED_PROVIDERS.has(platform);
+}
 
 export function getProvider(platform: Platform): BaseProvider | undefined {
   return providers.get(platform);
@@ -613,6 +695,11 @@ export function getAllProviders(): BaseProvider[] {
   return Array.from(providers.values());
 }
 
+export function getActiveProviders(): BaseProvider[] {
+  return Array.from(providers.values()).filter(p => !isRemovedPlatform(p.platform));
+}
+
 export function hasProvider(platform: Platform): boolean {
   return providers.has(platform);
 }
+

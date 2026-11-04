@@ -35,11 +35,13 @@ import { EditModelsDialog } from './edit-models-dialog'
 import { ModelScopeDialog } from './model-scope-dialog'
 import { TestModelsDialog } from './test-models-dialog'
 import { AddModelDialog } from './add-model-dialog'
+import { ProviderLogo } from '@/components/provider-logo'
 import { computeProviderStatusCategory, sortProviderGroups } from '@/lib/provider-sorting'
 import { ProviderCredentialsCard } from './provider-credentials-card'
 import { ProviderModelsCard } from './provider-models-card'
 
 type StatusFilter = 'all' | 'healthy' | 'issues' | 'disabled'
+type CategoryFilter = 'all' | 'oauth' | 'api' | 'gateway'
 type BulkAction = 'enable' | 'disable' | 'delete'
 
 export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
@@ -50,6 +52,7 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
   const [groupOverrides, setGroupOverrides] = useState<Map<string, boolean>>(new Map())
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
   const [discoverTarget, setDiscoverTarget] = useState<{ keyId: number; builtin: boolean } | null>(null)
   const [addKeyBaseUrl, setAddKeyBaseUrl] = useState<string | null>(null)
   const [copyKey, setCopyKey] = useState<{ id: number; maskedKey: string } | null>(null)
@@ -237,6 +240,11 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
     }
   }
 
+  function matchCategory(group: (typeof sortedGrouped)[number]): boolean {
+    if (categoryFilter === 'all') return true
+    return group.category === categoryFilter
+  }
+
   const visibleGroups = useMemo(() => {
     return sortedGrouped
       .map(group => {
@@ -245,8 +253,8 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
         const matchingKeys = group.keys.filter(k => keyMatchesQuery(k, q))
         return { ...group, keys: matchingKeys }
       })
-      .filter(group => group.keys.length > 0 && matchStatus(group))
-  }, [sortedGrouped, q, statusFilter])
+      .filter(group => group.keys.length > 0 && matchStatus(group) && matchCategory(group))
+  }, [sortedGrouped, q, statusFilter, categoryFilter])
 
   function isGroupExpanded(group: (typeof sortedGrouped)[number]): boolean {
     const override = groupOverrides.get(group.value)
@@ -284,7 +292,7 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
     <div className="space-y-4">
       {/* Search and Segmented Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-paper-2 p-2.5 rounded-xl border-[2px] border-ink shadow-sh1">
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-64">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-ink-mute" />
           <ClayInput
             value={search}
@@ -294,17 +302,31 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
           />
         </div>
 
-        <SegmentedControl
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-          options={[
-            { value: 'all', label: `All (${totalProviders})` },
-            { value: 'healthy', label: `Healthy (${totalHealthy})` },
-            { value: 'issues', label: `Attention (${totalAttention})` },
-            { value: 'disabled', label: `Disabled (${totalDisabled})` },
-          ]}
-          ariaLabel="Filter providers by status"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <SegmentedControl
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'oauth', label: 'OAuth' },
+              { value: 'api', label: 'API' },
+              { value: 'gateway', label: 'Gateways' },
+            ]}
+            ariaLabel="Filter providers by category"
+          />
+
+          <SegmentedControl
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            options={[
+              { value: 'all', label: `All (${totalProviders})` },
+              { value: 'healthy', label: `Healthy (${totalHealthy})` },
+              { value: 'issues', label: `Attention (${totalAttention})` },
+              { value: 'disabled', label: `Disabled (${totalDisabled})` },
+            ]}
+            ariaLabel="Filter providers by status"
+          />
+        </div>
 
         <div className="font-mono text-xs text-ink-mute">
           <span className="font-bold text-ink">{totalKeys}</span> keys / <span className="font-bold text-ink">{totalProviders}</span> active gateways
@@ -343,9 +365,22 @@ export function ProviderList({ onAddKey }: { onAddKey: () => void }) {
                       className="flex items-center gap-2 text-left min-w-0 group/hdr"
                       aria-expanded={expanded}
                     >
+                      <ProviderLogo platform={group.value} className="size-5 shrink-0" />
                       <h3 className="font-mono text-sm font-bold text-ink group-hover/hdr:text-clay transition-colors truncate">
                         {group.label}
                       </h3>
+
+                      {group.category && (
+                        <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                          group.category === 'oauth'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
+                            : group.category === 'gateway'
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                        }`}>
+                          {group.category}
+                        </span>
+                      )}
 
                       <ClayBadge variant="model-badge" size="sm">
                         {group.keys.length} {group.keys.length === 1 ? 'KEY' : 'KEYS'}

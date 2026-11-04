@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
-import { ChevronDown, ExternalLink, KeyRound, Plus, Unlock } from 'lucide-react'
+import { ChevronDown, ExternalLink, KeyRound, Unlock } from 'lucide-react'
 import { Tooltip } from '@/components/tooltip'
 import { useI18n } from '@/i18n'
 import { PLATFORMS } from './shared'
+import { ProviderLogo } from '@/components/provider-logo'
 
 // Shape of GET /api/keys/providers (#543). Declared inline: the backend owns
 // the contract (server/src/routes/keys.ts) and this is the only consumer.
@@ -80,7 +81,7 @@ export function ProviderChecklistSection({ onAddKey }: { onAddKey: (platform: st
                     onClick={() => onAddKey(p.platform)}
                     className={`inline-flex h-5 items-center gap-1 rounded-4xl border border-border pr-1.5 pl-2 text-xs font-medium whitespace-nowrap transition-all hover:bg-muted focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 ${signupUrl && !p.keyless ? 'pr-7' : ''}`}
                   >
-                    <Plus className="size-3 text-muted-foreground" />
+                    <ProviderLogo platform={p.platform} className="size-3.5 shrink-0" />
                     {p.name}
                     {p.keyless ? (
                       <span className="inline-flex text-muted-foreground">
