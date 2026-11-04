@@ -271,35 +271,45 @@ function IllustrationGraphChart({
         stroke={cardStroke}
       />
 
-      <path
-        d="M21 14.5H41C44.0376 14.5 46.5 16.9624 46.5 20V28C46.5 31.0376 44.0376 33.5 41 33.5H21C17.9624 33.5 15.5 31.0376 15.5 28V20C15.5 16.9624 17.9624 14.5 21 14.5Z"
-        stroke={errorBadgeColor}
-        fill="none"
-      />
-      {textColor && customBadgeIcon ? (
-        <g transform="translate(19, 18)" style={{ color: textColor }}>
-          {customBadgeIcon}
-        </g>
+      {badgeText ? (
+        <>
+          <rect
+            x={18}
+            y={17}
+            width={Math.max(34, badgeText.length * 6.5 + 14)}
+            height={16}
+            rx={4}
+            stroke={errorBadgeColor}
+            fill="color-mix(in srgb, var(--destructive, #C85046) 12%, transparent)"
+          />
+          {customBadgeIcon ? (
+            <g transform="translate(22, 19)">{customBadgeIcon}</g>
+          ) : null}
+          <text
+            x={18 + Math.max(34, badgeText.length * 6.5 + 14) / 2 + (customBadgeIcon ? 6 : 0)}
+            y={28.5}
+            fill={errorBadgeTextColor}
+            fontSize="9"
+            fontWeight="700"
+            fontFamily="ui-monospace, monospace"
+            textAnchor="middle"
+          >
+            {badgeText}
+          </text>
+        </>
       ) : null}
-      <text
-        x="31"
-        y="28"
-        fill={errorBadgeTextColor}
-        fontSize="10"
-        fontFamily="system-ui, sans-serif"
-        textAnchor="middle"
-      >
-        {badgeText}
-      </text>
-      <text
-        x="55"
-        y="28"
-        fill={mutedTextColor}
-        fontSize="10"
-        fontFamily="system-ui, sans-serif"
-      >
-        {headerText}
-      </text>
+      {headerText ? (
+        <text
+          x={badgeText ? 18 + Math.max(34, badgeText.length * 6.5 + 14) + 10 : 20}
+          y={28.5}
+          fill={textColor || mutedTextColor}
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+          fontWeight="500"
+        >
+          {headerText}
+        </text>
+      ) : null}
 
       <text
         x="25"

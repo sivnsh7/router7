@@ -45,13 +45,7 @@ import { categoryAxisProps, verticalCategoryAxisProps } from '@/lib/chart-axis'
 import { useI18n } from '@/i18n'
 import AnalyticsLineChart, { DEFAULT_DATA, type AnalyticsDataPoint } from '@/components/ui/analytics-chart'
 import IllustrationGraph from '@/components/ui/illustration-graph'
-import {
-  FoldedCard,
-  FoldedCardHeading,
-  FoldedCardTitle,
-  FoldedCardBadge,
-  FoldedCardDescription,
-} from '@/components/ui/folded-card'
+import { RaisedCard } from '@/components/ui/clay-card'
 
 type TimeRange = '24h' | '7d' | '30d' | '90d'
 
@@ -784,40 +778,55 @@ export default function AnalyticsPage() {
 
         {/* Tactical Telemetry & System Dossiers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FoldedCard className="p-4 border-[2px] border-ink bg-paper-3 shadow-sm">
-            <FoldedCardHeading>
-              <FoldedCardBadge className="bg-clay text-white">LADDER DEFENSE</FoldedCardBadge>
-              <FoldedCardTitle className="text-sm font-bold font-mono mt-2">Failover Resilience</FoldedCardTitle>
-            </FoldedCardHeading>
-            <FoldedCardDescription className="text-xs text-ink-soft mt-1">
-              Protected {summary?.pinnedRequests ?? 0} request chains across {byPlatform.length} providers with zero caller disruption.
-            </FoldedCardDescription>
-          </FoldedCard>
+          <RaisedCard elevation="low" fold={true} className="p-4 bg-paper-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-clay text-white tracking-wider">
+                LADDER DEFENSE
+              </span>
+              <span className="text-[10px] font-mono text-ink-muted">01 // RESILIENCE</span>
+            </div>
+            <h4 className="text-sm font-bold font-mono text-ink">Failover Resilience</h4>
+            <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+              {(summary?.totalRequests ?? 0) > 0
+                ? `Protected ${summary?.pinnedRequests ?? 0} request chains across ${byPlatform.length} providers with zero caller disruption.`
+                : `Active standby across ${byPlatform.length || 'configured'} providers with automated circuit-breaking and seamless failover ready.`}
+            </p>
+          </RaisedCard>
 
-          <FoldedCard className="p-4 border-[2px] border-ink bg-paper-3 shadow-sm">
-            <FoldedCardHeading>
-              <FoldedCardBadge className="bg-green text-white">LATENCY PULSE</FoldedCardBadge>
-              <FoldedCardTitle className="text-sm font-bold font-mono mt-2">TTFT Velocity</FoldedCardTitle>
-            </FoldedCardHeading>
-            <FoldedCardDescription className="text-xs text-ink-soft mt-1">
-              Average streaming first token recorded at {ttftValue} with p95 envelope clamped at {p95Value}.
-            </FoldedCardDescription>
-          </FoldedCard>
+          <RaisedCard elevation="low" fold={true} className="p-4 bg-paper-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-green text-white tracking-wider">
+                LATENCY PULSE
+              </span>
+              <span className="text-[10px] font-mono text-ink-muted">02 // VELOCITY</span>
+            </div>
+            <h4 className="text-sm font-bold font-mono text-ink">TTFT Velocity</h4>
+            <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+              {ttftValue !== '—' || p95Value !== '—'
+                ? `Average streaming first token recorded at ${ttftValue} with p95 envelope clamped at ${p95Value}.`
+                : 'Standing by for live streaming request telemetry; latency envelopes calibrate on active stream passes.'}
+            </p>
+          </RaisedCard>
 
-          <FoldedCard className="p-4 border-[2px] border-ink bg-paper-3 shadow-sm">
-            <FoldedCardHeading>
-              <FoldedCardBadge className="bg-red text-white">TOKEN OPTIMIZATION</FoldedCardBadge>
-              <FoldedCardTitle className="text-sm font-bold font-mono mt-2">Arbitrage Savings</FoldedCardTitle>
-            </FoldedCardHeading>
-            <FoldedCardDescription className="text-xs text-ink-soft mt-1">
-              Estimated 30-day savings of ${savings30d.toFixed(2)} achieved via optimal cost-tier model routing.
-            </FoldedCardDescription>
-          </FoldedCard>
+          <RaisedCard elevation="low" fold={true} className="p-4 bg-paper-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-block px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-red text-white tracking-wider">
+                TOKEN OPTIMIZATION
+              </span>
+              <span className="text-[10px] font-mono text-ink-muted">03 // ARBITRAGE</span>
+            </div>
+            <h4 className="text-sm font-bold font-mono text-ink">Arbitrage Savings</h4>
+            <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+              {savings30d > 0
+                ? `Estimated 30-day savings of $${savings30d.toFixed(2)} achieved via optimal cost-tier model routing.`
+                : 'Real-time cost arbitrage active; incoming payloads are automatically assigned to the most cost-efficient healthy model tier.'}
+            </p>
+          </RaisedCard>
         </div>
 
         {/* Live Telemetry Velocity & Outlier Boundary Visualizations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="rounded-xl border-[2px] border-ink bg-paper-3 p-5 shadow-sm space-y-3">
+          <RaisedCard elevation="medium" className="p-5 space-y-3 bg-paper-3">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase font-mono tracking-widest text-clay font-bold">
@@ -841,9 +850,9 @@ export default function AnalyticsPage() {
               valueLabel="requests"
               height={220}
             />
-          </div>
+          </RaisedCard>
 
-          <div className="rounded-xl border-[2px] border-ink bg-paper-3 p-5 shadow-sm space-y-3">
+          <RaisedCard elevation="medium" className="p-5 space-y-3 bg-paper-3">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase font-mono tracking-widest text-red font-bold">
@@ -860,8 +869,8 @@ export default function AnalyticsPage() {
             <div className="w-full overflow-hidden flex justify-center">
               <IllustrationGraph
                 headerText="Failover Waveform & Latency Envelope"
-                badgeText="ANOMALY BOUNDARY ACTIVE"
-                footerText={`P95 threshold envelope (${p95Value}) maintained with 0 unhandled dropouts`}
+                badgeText={p95Value !== '—' ? "ANOMALY BOUNDARY" : "NOMINAL"}
+                footerText={p95Value !== '—' ? `P95 threshold envelope (${p95Value}) maintained with 0 unhandled dropouts` : "Zero threshold excursions observed across active cluster"}
                 width={680}
                 height={220}
                 showHighlightArea={true}
@@ -869,7 +878,7 @@ export default function AnalyticsPage() {
                 className="w-full max-w-[680px] h-auto"
               />
             </div>
-          </div>
+          </RaisedCard>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

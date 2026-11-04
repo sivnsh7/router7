@@ -30,13 +30,13 @@ export interface AnalyticsGradientStop {
 }
 
 export const DEFAULT_DATA: AnalyticsDataPoint[] = [
-  { date: "2023-09-10", label: "buy-it-now", value: 8420 },
-  { date: "2023-10-15", label: "buy-it-now", value: 12_891 },
-  { date: "2023-12-10", label: "buy-it-now", value: 21_291 },
-  { date: "2024-01-20", label: "buy-it-now", value: 28_530 },
-  { date: "2024-02-15", label: "buy-it-now", value: 30_102 },
-  { date: "2024-03-10", label: "buy-it-now", value: 33_847 },
-  { date: "2024-04-10", label: "buy-it-now", value: 40_171 },
+  { date: "14:00", label: "requests", value: 0 },
+  { date: "15:00", label: "requests", value: 0 },
+  { date: "16:00", label: "requests", value: 0 },
+  { date: "17:00", label: "requests", value: 0 },
+  { date: "18:00", label: "requests", value: 0 },
+  { date: "19:00", label: "requests", value: 0 },
+  { date: "20:00", label: "requests", value: 0 },
 ]
 
 export const DEFAULT_GRADIENT: AnalyticsGradientStop[] = [
@@ -67,11 +67,18 @@ export function dotColor(i: number, n: number, overrides?: string[]) {
 }
 
 export function fmtDate(s: string) {
-  return new Date(`${s}T00:00:00`).toLocaleDateString("en-US", {
+  if (!s) return "Now"
+  if (s.includes(":") || s === "Today" || s === "Now" || s === "Recent") {
+    return s
+  }
+  const date = new Date(s.includes("T") ? s : `${s}T00:00:00`)
+  if (isNaN(date.getTime())) {
+    return s
+  }
+  return date.toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",
-    year: "numeric",
   })
 }
 
@@ -163,15 +170,12 @@ export function AnalyticsTooltip({
           ...(isTop
             ? { bottom: circR * 2 + gap, right: -(circR + 2) }
             : { top: circR * 2 + gap, left: -(circR + 2) }),
-          background: "var(--card)",
-          borderRadius: 10,
-          padding: "9px 13px",
-          border: "1px solid var(--border)",
-          boxShadow: [
-            "0 1px 2px -1px rgba(0,0,0,0.07)",
-            "0 3px 8px 0 rgba(0,0,0,0.04)",
-            "0 8px 20px -4px rgba(0,0,0,0.06)",
-          ].join(","),
+          background: "var(--card, #24201B)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          border: "1.5px solid var(--border)",
+          isolation: "isolate",
+          boxShadow: "var(--sh-1)",
         }}
       >
         <div
@@ -245,7 +249,7 @@ export function AnalyticsLineChart({
   gridLines = 5,
   height = 280,
   pinnedIndices,
-  valueLabel = "clicks",
+  valueLabel = "requests",
   className,
 }: AnalyticsLineChartProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
@@ -317,11 +321,8 @@ export function AnalyticsLineChart({
     if (pinnedIndices) {
       return pinnedIndices
     }
-    if (points.length >= 3) {
-      return [2, points.length - 1]
-    }
-    return points.length === 2 ? [0, 1] : [0]
-  }, [pinnedIndices, points.length])
+    return []
+  }, [pinnedIndices])
 
   const onMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
