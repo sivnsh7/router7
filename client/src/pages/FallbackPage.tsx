@@ -53,7 +53,6 @@ import { ChainManager } from '@/components/chain-manager'
 import { RaisedCard } from '@/components/ui/clay-card'
 import { useReveal, Reveal } from '@/components/ui/motion'
 import { KnockoutBracket } from '@/components/ui/skiper-ui/skiper107'
-import MorphingSidebarControls from '@/components/ui/morphing-sidebar-controls'
 
 // `tKey` is the i18n suffix under `strategies.*` (label) and `strategies.*Blurb`.
 // It differs from the routing `key` for Manual, whose strategy id is 'priority'.
@@ -560,26 +559,6 @@ export default function FallbackPage() {
                   onSave={p => strategyMutation.mutate({ strategy, ...p })}
                 />
               )}
-
-              <div className="w-full mt-4 pt-4 border-t border-ink/15">
-                <div className="mb-2 text-xs font-mono font-bold uppercase tracking-widest text-clay">
-                  ROUTER7 ENGINE MORPHING TUNING CONTROLS
-                </div>
-                <div className="flex justify-center w-full">
-                  <MorphingSidebarControls
-                    title="Engine Dynamics"
-                    primaryFeatureName="Adaptive Failover"
-                    secondaryFeatureName="Stream Pipelining"
-                    asymmetricOptionsName="Asymmetric Fallback"
-                    tabs={['Latency Gate', 'TTFT Clamp']}
-                    types={['Fastest', 'Resilient']}
-                    configOptions={[
-                      { label: 'Max Concurrency', value: '64' },
-                      { label: 'Timeout (s)', value: '30' },
-                    ]}
-                  />
-                </div>
-              </div>
             </div>
           )}
 

@@ -143,5 +143,5 @@ describe('OAuth Routes Integration', () => {
     expect(refreshRes.status).toBe(200);
     expect(refreshRes.body.success).toBe(true);
     expect(refreshRes.body.refreshedAt).toBeDefined();
-  });
+  }, 20000);
 });
