@@ -11,12 +11,12 @@ const cliEntry = path.resolve(__dirname, '../dist/index.js');
 
 test('r7 --version prints version', async () => {
   const { stdout } = await execFileAsync(process.execPath, [cliEntry, '--version']);
-  assert.match(stdout, /router7 v0\.7\.\d+/);
+  assert.match(stdout, /router7 v0\.8\.\d+/);
 });
 
-test('r7 --help prints usage for starting the server and dashboard', async () => {
+test('r7 --help prints usage for starting the GUI dashboard', async () => {
   const { stdout } = await execFileAsync(process.execPath, [cliEntry, '--help']);
-  assert.match(stdout, /Router7 — Intelligent Multi-Provider AI Gateway & GUI Dashboard/);
+  assert.match(stdout, /Router7 GUI — Intelligent Multi-Provider AI Gateway & Web GUI Dashboard/);
   assert.match(stdout, /Usage:/);
   assert.match(stdout, /--port/);
 });

@@ -1,7 +1,7 @@
 {
   "name": "router7",
-  "version": "0.7.8",
-  "description": "Intelligent Multi-Provider AI Gateway & GUI Dashboard",
+  "version": "0.8.0",
+  "description": "Router7 GUI — Intelligent Multi-Provider AI Gateway & Web GUI Dashboard",
   "license": "MIT",
   "repository": {
     "type": "git",

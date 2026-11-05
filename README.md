@@ -273,13 +273,12 @@ r7
 npm start
 ```
 
-### CLI Options
+### Options
 
 | Flag | Meaning | Default |
 |---|---|---|
 | `-p, --port <port>` | Port to listen on | `3001` (or `$PORT`) |
 | `-h, --host <host>` | Host interface to bind to | `127.0.0.1` (or `$HOST`) |
-| `--no-open` | Start server in headless mode (don't open browser) | `false` |
 | `-v, --version` | Display current version | |
 | `--help` | Show usage options | |
 

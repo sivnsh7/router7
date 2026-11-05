@@ -22,14 +22,13 @@ function getVersion(): string {
   } catch {
     // fallback if package.json read fails
   }
-  return '0.7.8';
+  return '0.8.0';
 }
 
 interface ServerOptions {
   port: number;
   explicitPort: boolean;
   host: string;
-  noOpen: boolean;
 }
 
 function printBanner(port: number, host: string) {
@@ -42,9 +41,9 @@ function printBanner(port: number, host: string) {
 / _, _/ /_/ / /_/ / /_/  __/ /     / /  
 /_/ |_|\\____/\\__,_/\\__/\\___/_/     /_/   
 
-🌐 Router7 AI Gateway & GUI Dashboard (v${getVersion()})
+🌐 Router7 GUI Dashboard & AI Gateway (v${getVersion()})
 ──────────────────────────────────────────────────────────
-  Dashboard:        ${url}
+  GUI Dashboard:    ${url}
   OpenAI Endpoint:  ${url}/v1
   Anthropic Wire:   ${url}/v1/messages
   Google Gemini:    ${url}/v1beta
@@ -54,7 +53,7 @@ function printBanner(port: number, host: string) {
 
 function printHelp() {
   console.log(`
-Router7 — Intelligent Multi-Provider AI Gateway & GUI Dashboard
+Router7 GUI — Intelligent Multi-Provider AI Gateway & Web GUI Dashboard
 
 Usage:
   r7 [options]
@@ -63,14 +62,12 @@ Usage:
 Options:
   -p, --port <number>   Port to listen on (default: 3001 or $PORT)
   -h, --host <string>   Host interface to bind to (default: 127.0.0.1 or $HOST)
-  --no-open             Do not automatically open the web dashboard in the browser
   -v, --version         Show Router7 version
   --help                Show this help message
 
 Examples:
-  r7                    Start server & launch dashboard on http://127.0.0.1:3001
-  r7 --port 8080        Start server on port 8080
-  r7 --no-open          Start in headless / background mode
+  r7                    Start server & launch GUI dashboard on http://127.0.0.1:3001
+  r7 --port 8080        Start server & launch GUI dashboard on port 8080
 `);
 }
 
@@ -208,7 +205,6 @@ function parseArgs(argv: string[]): ServerOptions {
     }
   }
   let host = process.env.HOST || '127.0.0.1';
-  let noOpen = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -221,7 +217,7 @@ function parseArgs(argv: string[]): ServerOptions {
       process.exit(0);
     }
     if (arg === '--no-open') {
-      noOpen = true;
+      console.log('Notice: Headless CLI mode has been removed. Router7 runs exclusively as a GUI application.');
       continue;
     }
     if (arg === '-p' || arg === '--port') {
@@ -241,7 +237,7 @@ function parseArgs(argv: string[]): ServerOptions {
     }
   }
 
-  return { port, explicitPort, host, noOpen };
+  return { port, explicitPort, host };
 }
 
 async function main() {
@@ -299,18 +295,16 @@ async function main() {
     process.exit(code ?? 0);
   });
 
-  // Once server is ready, open browser (if desktop environment available)
-  if (!options.noOpen) {
-    const ready = await waitForReady(options.host, targetPort);
-    if (ready) {
-      const displayHost = options.host === '0.0.0.0' ? '127.0.0.1' : options.host;
-      const targetUrl = `http://${displayHost}:${targetPort}`;
-      if (process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
-        console.log(`ℹ️  Headless environment detected. Open ${targetUrl} in your browser.\n`);
-      } else {
-        console.log(`🚀 Opening dashboard at ${targetUrl}...\n`);
-        openBrowser(targetUrl);
-      }
+  // Once server is ready, launch Router7 GUI Dashboard in browser
+  const ready = await waitForReady(options.host, targetPort);
+  if (ready) {
+    const displayHost = options.host === '0.0.0.0' ? '127.0.0.1' : options.host;
+    const targetUrl = `http://${displayHost}:${targetPort}`;
+    if (process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+      console.log(`🚀 Router7 GUI Dashboard active at ${targetUrl}\n`);
+    } else {
+      console.log(`🚀 Launching Router7 GUI Dashboard at ${targetUrl}...\n`);
+      openBrowser(targetUrl);
     }
   }
 }

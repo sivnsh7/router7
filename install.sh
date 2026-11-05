@@ -185,7 +185,7 @@ fi
 for bin_dir in "${TARGET_BINS[@]}"; do
   cat << 'EOF' > "$bin_dir/r7"
 #!/usr/bin/env bash
-# Router7 CLI Launcher
+# Router7 GUI Launcher
 export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # 1. If globally installed via npm in ~/.npm-global (instant)
