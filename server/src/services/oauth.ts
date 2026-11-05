@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import type { Platform, OAuthDeviceInitiateResponse, OAuthDevicePollResponse, OAuthProviderMetadata, OAuthTokenBundle } from '@router7/shared/types.js';
-import { OAUTH_PLATFORMS } from '@router7/shared/types.js';
 import { getDb } from '../db/index.js';
 import { encrypt, decrypt, maskKey } from '../lib/crypto.js';
 import { triggerBuiltinModelDiscovery } from './builtin-model-discovery.js';
@@ -118,8 +117,15 @@ export function getSupportedOAuthProviders(): OAuthProviderMetadata[] {
   }));
 }
 
+const OAUTH_PLATFORM_IDS: ReadonlySet<string> = new Set([
+  'antigravity',
+  'copilot',
+  'codex',
+  'openreference',
+]);
+
 export function isOAuthPlatform(platform: string): boolean {
-  return OAUTH_PLATFORMS.has(platform) || platform in OAUTH_PROVIDER_CONFIGS;
+  return OAUTH_PLATFORM_IDS.has(platform) || platform in OAUTH_PROVIDER_CONFIGS;
 }
 
 export function getOAuthProviderConfig(platform: string): OAuthProviderConfig | undefined {
