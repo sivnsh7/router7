@@ -2,6 +2,11 @@
   "name": "router7",
   "version": "0.8.2",
   "description": "Router7 GUI — Intelligent Multi-Provider AI Gateway & Web GUI Dashboard",
+  "author": {
+    "name": "sivnsh7",
+    "email": "sivnsh7@gmail.com",
+    "url": "https://github.com/sivnsh7"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

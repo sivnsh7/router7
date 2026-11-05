@@ -1,5 +1,10 @@
 {
   "name": "@router7/client",
+  "author": {
+    "name": "sivnsh7",
+    "email": "sivnsh7@gmail.com",
+    "url": "https://github.com/sivnsh7"
+  },
   "private": true,
   "version": "0.0.0",
   "type": "module",
