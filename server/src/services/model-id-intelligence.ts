@@ -1,4 +1,3 @@
-import type { Platform } from '@router7/shared/types.js';
 
 export interface ModelIntelligenceJudgment {
   modelId: string;
@@ -100,7 +99,7 @@ export function estimateContextWindow(id: string): number {
  * Automatically analyzes any model id string and determines its intelligence tier,
  * intelligence rank, speed rank, reliability prior, and hardware capabilities.
  */
-export function judgeModelById(modelId: string, platform?: string): ModelIntelligenceJudgment {
+export function judgeModelById(modelId: string, _platform?: string): ModelIntelligenceJudgment {
   const rawId = modelId.trim();
   const lower = rawId.toLowerCase();
   const params = extractParameterCount(lower);

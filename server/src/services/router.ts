@@ -34,7 +34,6 @@ import { parseBudget } from '../lib/budget.js';
 import { platformDropsResponseFormat } from '../lib/sampling-params.js';
 import { isUnifyEnabled, getModelGroups, resolveRequestedIdForDispatch } from './model-groups.js';
 import { isModelFailed, isProviderFailed } from './model-probe-verifier.js';
-import { isRemovedPlatform } from '../providers/index.js';
 import { judgeModelById } from './model-id-intelligence.js';
 import { getActiveProfileId } from './profile-models.js';
 import { customEndpointKeyIds } from './custom-endpoint.js';

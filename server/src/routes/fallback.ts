@@ -19,7 +19,6 @@ import { overriddenFieldNames } from '../services/model-state.js';
 import { parseModelScope, scopeAllows } from '../lib/model-scope.js';
 import { getQuotaOutlook } from '../services/quota-outlook.js';
 import { isModelFailed, isProviderFailed, getModelProbeSummary, runModelProbePass } from '../services/model-probe-verifier.js';
-import { isRemovedPlatform } from '../providers/index.js';
 
 export const fallbackRouter = Router();
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import type { Express } from 'express'
 import { createApp } from '../../app.js'
-import { getDb, initDb } from '../../db/index.js'
+import { initDb } from '../../db/index.js'
 import { recordProbeResult, ensureProbeTable } from '../../services/model-probe-verifier.js'
 import { mintDashboardToken } from '../helpers/auth.js'
 

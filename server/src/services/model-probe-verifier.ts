@@ -1,6 +1,6 @@
 import type { Db } from '../db/types.js';
 import type { Scheduler } from '../lib/scheduler.js';
-import { resolveProvider, getProvider, isRemovedPlatform } from '../providers/index.js';
+import { resolveProvider, isRemovedPlatform } from '../providers/index.js';
 import { decrypt } from '../lib/crypto.js';
 import { decryptProxyUrl } from '../lib/key-proxy.js';
 import { withKeyProxy } from '../lib/proxy.js';
