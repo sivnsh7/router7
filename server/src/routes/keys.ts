@@ -588,11 +588,21 @@ keysRouter.get('/export', (req: Request, res: Response) => {
       } catch {
         key = '';
       }
+      let modelScope: string[] | undefined = undefined;
+      if (row.model_scope_json) {
+        try {
+          const parsed = JSON.parse(row.model_scope_json);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            modelScope = parsed;
+          }
+        } catch { /* ignore parse errors */ }
+      }
       return {
         platform: row.platform,
         key,
         label: row.label || '',
         baseUrl: row.base_url || undefined,
+        ...(modelScope ? { modelScope } : {}),
       };
     })
     .filter(k => isExportableKey({ platform: k.platform, baseUrl: k.baseUrl ?? null, key: k.key }));
@@ -1752,6 +1762,307 @@ keysRouter.post('/import-selected', async (req: Request, res: Response) => {
     skipped: [],
     errors,
     total: parsed.data.keys.length,
+    modelsRegistered,
+  });
+});
+
+const importJsonPayloadSchema = z.object({
+  keys: z.array(z.object({
+    platform: z.string(),
+    key: z.union([z.string(), z.record(z.any())]).optional(),
+    keyValue: z.union([z.string(), z.record(z.any())]).optional(),
+    label: z.string().optional(),
+    keyName: z.string().optional(),
+    baseUrl: z.string().optional(),
+    modelScope: z.array(z.string().trim().min(1).max(200)).max(100).nullable().optional(),
+    models: z.array(z.union([
+      z.string(),
+      z.object({
+        id: z.string(),
+        supportsTools: z.boolean().optional(),
+        supportsVision: z.boolean().optional(),
+      }),
+    ])).optional(),
+  })).optional(),
+  jsonContent: z.string().optional(),
+  collisionStrategy: z.enum(['skip', 'overwrite', 'keep_both']).optional().default('skip'),
+});
+
+// Direct JSON import with collision strategy handling (skip, overwrite, keep_both)
+keysRouter.post('/import-json', async (req: Request, res: Response) => {
+  const parsed = importJsonPayloadSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: { message: parsed.error.errors.map(e => e.message).join(', ') } });
+    return;
+  }
+
+  const { jsonContent, collisionStrategy = 'skip' } = parsed.data;
+  let rawKeys = parsed.data.keys || [];
+
+  if (jsonContent && jsonContent.trim()) {
+    try {
+      const sanitized = stripTrailingCommas(stripJsoncComments(jsonContent.trim()));
+      const parsedJson = JSON.parse(sanitized);
+      if (Array.isArray(parsedJson)) {
+        rawKeys = parsedJson;
+      } else if (parsedJson && typeof parsedJson === 'object') {
+        if (Array.isArray(parsedJson.keys)) {
+          rawKeys = parsedJson.keys;
+        } else {
+          // Object format e.g. { "openai": "sk-...", "anthropic": "sk-ant-..." }
+          rawKeys = Object.entries(parsedJson).map(([k, v]) => ({
+            platform: k,
+            key: typeof v === 'string' ? v : (v as any)?.key || (v as any)?.keyValue || '',
+            label: (v as any)?.label || (v as any)?.keyName || '',
+            baseUrl: (v as any)?.baseUrl,
+            modelScope: (v as any)?.modelScope,
+          }));
+        }
+      }
+    } catch (parseErr: any) {
+      res.status(400).json({ error: { message: `Invalid JSON format: ${parseErr.message}` } });
+      return;
+    }
+  }
+
+  if (!rawKeys || rawKeys.length === 0) {
+    res.status(400).json({ error: { message: 'No keys found to import' } });
+    return;
+  }
+
+  const db = getDb();
+  const existingRows = db.prepare('SELECT id, platform, label, base_url, encrypted_key, iv, auth_tag, model_scope_json FROM api_keys').all() as any[];
+
+  interface DecryptedRow {
+    id: number;
+    platform: string;
+    label: string;
+    baseUrl: string | null;
+    key: string;
+    modelScopeJson: string | null;
+  }
+
+  const existingKeys: DecryptedRow[] = existingRows.map(r => {
+    let key = '';
+    try {
+      key = decrypt(r.encrypted_key, r.iv, r.auth_tag).trim();
+    } catch {
+      key = '';
+    }
+    return {
+      id: r.id,
+      platform: r.platform,
+      label: r.label || '',
+      baseUrl: r.base_url || null,
+      key,
+      modelScopeJson: r.model_scope_json || null,
+    };
+  });
+
+  let imported = 0;
+  let updated = 0;
+  let modelsRegistered = 0;
+  const skipped: string[] = [];
+  const errors: Array<{ key: string; error: string }> = [];
+  const urlVerdicts = new Map<string, { allowed: boolean; reason?: string }>();
+  const touchedPlatforms = new Set<string>();
+
+  // Pre-assess custom URLs outside the loop
+  const customUrls = new Set<string>();
+  for (const item of rawKeys) {
+    if ((item.platform || '').trim().toLowerCase() === 'custom' && item.baseUrl) {
+      customUrls.add(normalizeBaseUrl(item.baseUrl));
+    }
+  }
+  for (const url of customUrls) {
+    const verdict = await assessProviderUrl(url);
+    urlVerdicts.set(url, verdict);
+  }
+
+  for (const item of rawKeys) {
+    const rawPlatform = (item.platform || '').trim();
+    let rawKeyValue = item.key ?? item.keyValue ?? '';
+    if (typeof rawKeyValue === 'object' && rawKeyValue !== null) {
+      rawKeyValue = JSON.stringify(rawKeyValue);
+    } else {
+      rawKeyValue = String(rawKeyValue);
+    }
+    const keyValue = rawKeyValue.trim();
+    const label = (item.label || item.keyName || '').trim();
+    const keyIdentifier = label || rawPlatform || 'unnamed_key';
+
+    if (!rawPlatform) {
+      errors.push({ key: keyIdentifier, error: 'Platform is required' });
+      continue;
+    }
+
+    const platformParse = z.enum(PLATFORMS).safeParse(rawPlatform.toLowerCase());
+    if (!platformParse.success) {
+      errors.push({ key: keyIdentifier, error: `Unsupported platform: ${rawPlatform}` });
+      continue;
+    }
+    const platform = platformParse.data;
+
+    // Handle custom endpoint
+    if (platform === 'custom') {
+      if (!item.baseUrl) {
+        errors.push({ key: keyIdentifier, error: 'Custom providers must be added with a base URL' });
+        continue;
+      }
+      const baseUrl = normalizeBaseUrl(item.baseUrl);
+      const verdict = urlVerdicts.get(baseUrl);
+      if (!verdict || !verdict.allowed) {
+        errors.push({ key: keyIdentifier, error: `baseUrl rejected: ${verdict?.reason || 'unauthorized URL'}` });
+        continue;
+      }
+
+      const collisionIndex = existingKeys.findIndex(
+        e => e.platform === 'custom' && e.baseUrl === baseUrl && (keyValue ? e.key === keyValue : true)
+      );
+
+      if (collisionIndex !== -1) {
+        if (collisionStrategy === 'skip') {
+          skipped.push(keyIdentifier);
+          continue;
+        } else if (collisionStrategy === 'overwrite') {
+          const target = existingKeys[collisionIndex];
+          try {
+            const secret = keyValue === 'no-key' ? undefined : keyValue || undefined;
+            const finalSecret = secret || target.key || 'no-key';
+            const { encrypted, iv, authTag } = encrypt(finalSecret);
+            const finalScope = item.modelScope !== undefined ? (item.modelScope?.length ? JSON.stringify(item.modelScope) : null) : target.modelScopeJson;
+            db.prepare(`
+              UPDATE api_keys
+              SET encrypted_key = ?, iv = ?, auth_tag = ?, label = ?, model_scope_json = ?, status = 'unknown'
+              WHERE id = ?
+            `).run(encrypted, iv, authTag, label || target.label, finalScope, target.id);
+            updated++;
+            if (item.models?.length) {
+              const normalized = item.models.map(m => typeof m === 'string' ? { id: m } : m);
+              modelsRegistered += await registerImportedModels(
+                db, baseUrl, target.id, finalSecret, keyIdentifier, normalized, errors,
+              );
+            }
+            continue;
+          } catch (err: any) {
+            errors.push({ key: keyIdentifier, error: err.message });
+            continue;
+          }
+        }
+      }
+
+      try {
+        const secret = keyValue === 'no-key' ? undefined : keyValue || undefined;
+        const resolved = resolveCustomEndpointKey(
+          db,
+          baseUrl,
+          secret,
+          collisionStrategy === 'keep_both' && collisionIndex !== -1 ? `${keyIdentifier} (imported)` : keyIdentifier
+        );
+        imported++;
+        existingKeys.push({
+          id: resolved.keyId,
+          platform: 'custom',
+          label: keyIdentifier,
+          baseUrl,
+          key: resolved.storedKey,
+          modelScopeJson: item.modelScope?.length ? JSON.stringify(item.modelScope) : null,
+        });
+        if (item.models?.length) {
+          const normalized = item.models.map(m => typeof m === 'string' ? { id: m } : m);
+          modelsRegistered += await registerImportedModels(
+            db, baseUrl, resolved.keyId, resolved.storedKey, keyIdentifier, normalized, errors,
+          );
+        }
+      } catch (err: any) {
+        errors.push({ key: keyIdentifier, error: err.message });
+      }
+      continue;
+    }
+
+    // Standard platform validation — allow keyless providers to have empty key (stored as 'no-key')
+    const isKeyless = resolveProvider(platform)?.keyless === true;
+    const finalKeyValue = keyValue || (isKeyless ? 'no-key' : '');
+    if (!finalKeyValue) {
+      errors.push({ key: keyIdentifier, error: 'keyValue must be at least 1 character' });
+      continue;
+    }
+
+    // Check collision: key matches existing decrypted key, OR same platform + non-empty label
+    const collisionIndex = existingKeys.findIndex(
+      e => e.key === finalKeyValue || (label && e.platform === platform && e.label.toLowerCase() === label.toLowerCase())
+    );
+
+    if (collisionIndex !== -1) {
+      if (collisionStrategy === 'skip') {
+        skipped.push(keyIdentifier);
+        continue;
+      } else if (collisionStrategy === 'overwrite') {
+        const target = existingKeys[collisionIndex];
+        try {
+          const { encrypted, iv, authTag } = encrypt(finalKeyValue);
+          const finalScope = item.modelScope !== undefined ? (item.modelScope?.length ? JSON.stringify(item.modelScope) : null) : target.modelScopeJson;
+          const finalLabel = label || target.label;
+          db.prepare(`
+            UPDATE api_keys
+            SET encrypted_key = ?, iv = ?, auth_tag = ?, label = ?, model_scope_json = ?, status = 'unknown'
+            WHERE id = ?
+          `).run(encrypted, iv, authTag, finalLabel, finalScope, target.id);
+          target.key = finalKeyValue;
+          target.label = finalLabel;
+          target.modelScopeJson = finalScope;
+          updated++;
+          touchedPlatforms.add(platform);
+          continue;
+        } catch (err: any) {
+          errors.push({ key: keyIdentifier, error: err.message });
+          continue;
+        }
+      }
+    }
+
+    // Non-collision or keep_both: insert
+    try {
+      const finalLabel = collisionStrategy === 'keep_both' && collisionIndex !== -1
+        ? `${keyIdentifier} (imported)`
+        : label;
+      const { encrypted, iv, authTag } = encrypt(finalKeyValue);
+      const modelScopeJson = item.modelScope?.length ? JSON.stringify(item.modelScope) : null;
+      const result = db.prepare(`
+        INSERT INTO api_keys (platform, label, encrypted_key, iv, auth_tag, status, enabled, model_scope_json)
+        VALUES (?, ?, ?, ?, ?, 'unknown', 1, ?)
+      `).run(platform, finalLabel, encrypted, iv, authTag, modelScopeJson);
+
+      imported++;
+      touchedPlatforms.add(platform);
+      existingKeys.push({
+        id: Number(result.lastInsertRowid),
+        platform,
+        label: finalLabel,
+        baseUrl: null,
+        key: finalKeyValue,
+        modelScopeJson,
+      });
+    } catch (err: any) {
+      errors.push({ key: keyIdentifier, error: err.message });
+    }
+  }
+
+  // Trigger builtin model discovery for any newly imported/updated platforms
+  for (const plat of touchedPlatforms) {
+    try {
+      triggerBuiltinModelDiscovery(db, plat, 'key_added');
+    } catch {
+      // background discovery failure shouldn't fail import
+    }
+  }
+
+  res.json({
+    imported,
+    updated,
+    skipped,
+    errors,
+    total: rawKeys.length,
     modelsRegistered,
   });
 });

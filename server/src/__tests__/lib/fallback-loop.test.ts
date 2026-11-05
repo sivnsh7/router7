@@ -943,4 +943,26 @@ describe('runFallbackLoop: routing-exhaustion diagnostics belong to the loop', (
       warn.mockRestore();
     }
   });
+
+  it('pre-flight auto-refreshes OAuth credentials before calling dispatch', async () => {
+    let dispatchedApiKey = '';
+    const oauthBundle = JSON.stringify({
+      access_token: 'gho_fresh_access_token_123',
+      expires_at: Date.now() + 3600_000,
+    });
+
+    await runFallbackLoop(hooksSkeleton({
+      route: () => fakeRoute({
+        apiKey: oauthBundle,
+        keyId: 9999,
+        platform: 'copilot',
+      }),
+      dispatch: async (route) => {
+        dispatchedApiKey = route.apiKey;
+        return 'done';
+      },
+    }));
+
+    expect(dispatchedApiKey).toBe('gho_fresh_access_token_123');
+  });
 });

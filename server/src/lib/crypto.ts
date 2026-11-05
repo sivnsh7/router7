@@ -225,7 +225,18 @@ export function decrypt(encrypted: string, iv: string, authTag: string): string 
 // meaningful share of the secret. Long keys keep the familiar prefix+suffix
 // form, where 8 revealed characters out of 20+ is a fixed, small fraction.
 export function maskKey(key: string): string {
-  if (key.length < 5) return '****';
-  if (key.length <= 8) return '****' + key.slice(-2);
-  return key.slice(0, 4) + '...' + key.slice(-4);
+  let val = key;
+  if (val.startsWith('{') && val.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(val);
+      if (typeof parsed === 'object' && parsed !== null && typeof parsed.access_token === 'string') {
+        val = parsed.access_token;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  if (val.length < 5) return '****';
+  if (val.length <= 8) return '****' + val.slice(-2);
+  return val.slice(0, 4) + '...' + val.slice(-4);
 }

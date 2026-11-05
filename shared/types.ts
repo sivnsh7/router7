@@ -53,6 +53,34 @@ export interface ImportSelectedResponse {
   modelsRegistered: number;
 }
 
+export type CollisionStrategy = 'skip' | 'overwrite' | 'keep_both';
+
+export interface JsonImportItem {
+  platform: string;
+  key?: string;
+  keyValue?: string;
+  label?: string;
+  keyName?: string;
+  baseUrl?: string;
+  modelScope?: string[] | null;
+  models?: ImportModelEntry[];
+}
+
+export interface ImportJsonRequest {
+  keys?: JsonImportItem[];
+  jsonContent?: string;
+  collisionStrategy?: CollisionStrategy;
+}
+
+export interface ImportJsonResponse {
+  imported: number;
+  updated: number;
+  skipped: string[];
+  errors: Array<{ key: string; error: string }>;
+  total: number;
+  modelsRegistered?: number;
+}
+
 // Active platforms — must match server/src/providers/index.ts and
 // server/src/routes/keys.ts PLATFORMS allowlist.
 // Moonshot and MiniMax direct integrations were dropped in migrateModelsV4
@@ -300,6 +328,45 @@ export function getProviderCategory(platform: string): ProviderCategory {
   if (OAUTH_PLATFORMS.has(platform)) return 'oauth';
   if (GATEWAY_PLATFORMS.has(platform)) return 'gateway';
   return 'api';
+}
+
+export interface OAuthProviderMetadata {
+  platform: Platform;
+  name: string;
+  authUrl: string;
+  deviceCodeUrl: string;
+  tokenUrl: string;
+  scopes: string[];
+  supportsDeviceFlow: boolean;
+  supportsAuthCodeFlow: boolean;
+}
+
+export interface OAuthDeviceInitiateResponse {
+  platform: Platform;
+  deviceCode: string;
+  userCode: string;
+  verificationUri: string;
+  verificationUriComplete?: string;
+  expiresIn: number;
+  interval: number;
+}
+
+export interface OAuthDevicePollResponse {
+  status: 'pending' | 'slow_down' | 'authorized' | 'expired' | 'denied' | 'error';
+  interval?: number;
+  keyId?: number;
+  platform?: Platform;
+  maskedToken?: string;
+  error?: string;
+}
+
+export interface OAuthTokenBundle {
+  token_type: string;
+  access_token: string;
+  refresh_token?: string;
+  expires_at?: number;
+  scope?: string;
+  id_token?: string;
 }
 
 export interface Model {

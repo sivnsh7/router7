@@ -32,7 +32,11 @@ export function AddKeyDialog({ open, onOpenChange, initialPlatform }: {
   const [scopeOffer, setScopeOffer] = useState<AddedKeyScopeOffer | null>(null)
   const finishAdd = (offer?: AddedKeyScopeOffer) => {
     close()
-    setScopeOffer(offer ?? null)
+    if (offer && offer.candidates && offer.candidates.length > 0) {
+      setScopeOffer(offer)
+    } else {
+      setScopeOffer(null)
+    }
   }
 
   // The pane sticks across opens (reopening to import twice should not reset

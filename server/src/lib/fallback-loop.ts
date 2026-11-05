@@ -62,6 +62,8 @@ import { logRequest, persistRequestAttempts } from './request-log.js';
 import { withKeyProxy } from './proxy.js';
 import { getEndpointTimeBudgetMs } from './ttfb-budget.js';
 import { learnOutputCapFromError, learnedOutputCap } from './output-cap.js';
+import { ensureValidToken } from '../services/oauth.js';
+import { isOAuthTokenBundle } from './credential.js';
 
 // Every surface caps failover hops at the same number.
 export const FALLBACK_MAX_RETRIES = 20;
@@ -1504,6 +1506,14 @@ async function runFallbackLoopAttempts(hooks: FallbackHooks, trace: RequestTrace
       // otherwise the global proxy / direct path applies as before. The URL
       // arrives already decrypted on the route (services/router.ts), so an
       // attempt costs nothing extra — no query, no decrypt.
+      // Pre-flight auto-refresh check for OAuth credentials (#oauth)
+      if (route.keyId && route.apiKey && isOAuthTokenBundle(route.apiKey)) {
+        try {
+          route.apiKey = await ensureValidToken(route.keyId, route.apiKey);
+        } catch (err: any) {
+          console.warn(`[FallbackLoop] OAuth token auto-refresh failed for key ${route.keyId}:`, err.message);
+        }
+      }
       outcome = await withKeyProxy(route.proxyUrl, () => hooks.dispatch(route, attempt, { disarmHedge }));
     } catch (err: any) {
       // Client-caused abort: the composed fetch signal fired because OUR

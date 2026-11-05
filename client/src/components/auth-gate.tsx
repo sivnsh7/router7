@@ -11,7 +11,6 @@ import { isEmail } from '@/lib/validate'
 import { useI18n } from '@/i18n'
 import { toast } from '@/lib/toast'
 import { BrandLockup } from './brand-lockup'
-import { SwapForm } from '@/components/ui/swap-form'
 
 // Matches the server rule (routes/auth.ts zod schema).
 const PASSWORD_MIN = 8
@@ -61,7 +60,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
   const [busy, setBusy] = useState(false)
   const [attempted, setAttempted] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
-  const [visualSwap, setVisualSwap] = useState(false)
 
   const isSetup = currentMode === 'setup'
   const isRegister = currentMode === 'register'
@@ -120,30 +118,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
     return <ForgotPasswordForm onBack={() => setShowForgot(false)} />
   }
 
-  if (visualSwap && mode !== 'setup') {
-    return (
-      <Centered>
-        <div className="mb-6 flex flex-col items-center justify-center gap-3">
-          <BrandLockup />
-          <button
-            type="button"
-            onClick={() => setVisualSwap(false)}
-            className="text-xs font-mono text-ink-mute hover:text-ink underline"
-          >
-            Switch to Standard View
-          </button>
-        </div>
-        <SwapForm
-          isSignIn={currentMode === 'login'}
-          onModeChange={(isSign) => {
-            setCurrentMode(isSign ? 'login' : 'register')
-            setError('')
-          }}
-        />
-      </Centered>
-    )
-  }
-
   return (
     <Centered>
       <div className="mb-6 flex items-center justify-center">
@@ -176,14 +150,6 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
                 {t('auth.createAccount')}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setVisualSwap(true)}
-              className="text-[10px] font-mono text-ink-mute hover:text-ink px-2 py-1.5 rounded-lg border border-ink/20 hover:bg-paper-2 transition-colors shrink-0"
-              title="Switch to 3D Flip Form"
-            >
-              Flip Mode
-            </button>
           </div>
         )}
         <h1 className="text-lg font-heading font-bold tracking-tight text-ink">{isCreatingAccount ? t('auth.createYourAccount') : t('auth.signIn')}</h1>

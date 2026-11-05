@@ -6,7 +6,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { PageHeader } from '@/components/page-header'
 import { RaisedCard } from '@/components/ui/clay-card'
 import type { ApiKey, Platform } from '../../../shared/types'
-import { Plus, Download, ShieldCheck, Activity, KeyRound, RefreshCw, Cpu } from 'lucide-react'
+import { Plus, Download, ShieldCheck, Activity, KeyRound, RefreshCw, Cpu, Upload } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import type { HealthData } from '@/components/keys/shared'
 import { QuotaSignalsSection } from '@/components/keys/quota-signals-section'
@@ -19,6 +19,7 @@ import { ProviderList } from '@/components/keys/provider-list'
 import { ProviderChecklistSection } from '@/components/keys/provider-checklist-section'
 import { AddKeyDialog } from '@/components/keys/add-key-dialog'
 import { ExportKeysDialog } from '@/components/keys/export-keys-dialog'
+import { ImportKeysDialog } from '@/components/keys/import-keys-dialog'
 import { AgentCompatibilitySection } from '@/components/keys/agent-compatibility-section'
 import { GatewayEndpointIllustration } from '@/components/ui/gateway-endpoint-illustration'
 
@@ -39,6 +40,7 @@ export default function KeysPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [addPlatform, setAddPlatform] = useState<Platform | ''>('')
   const [exportOpen, setExportOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
 
   const openAddKey = (platform: Platform | '' = '') => {
     setAddPlatform(platform)
@@ -87,6 +89,15 @@ export default function KeysPage() {
                 {checkAll.isPending ? t('keys.checking') : (t('keys.checkAll') || 'Verify Connections')}
               </ClayButton>
             )}
+            <ClayButton
+              variant="clay-secondary"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+              className="flex items-center gap-1.5"
+            >
+              <Upload className="size-3.5" />
+              Import
+            </ClayButton>
             {keys.length > 0 && (
               <ClayButton
                 variant="clay-secondary"
@@ -209,6 +220,7 @@ export default function KeysPage() {
       </div>
 
       <AddKeyDialog open={addOpen} onOpenChange={setAddOpen} initialPlatform={addPlatform || undefined} />
+      {importOpen && <ImportKeysDialog open={importOpen} onOpenChange={setImportOpen} />}
       {exportOpen && <ExportKeysDialog open={exportOpen} onOpenChange={setExportOpen} />}
     </div>
   )

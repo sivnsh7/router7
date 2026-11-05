@@ -15,6 +15,7 @@ import type { FallbackEntry } from '@/lib/routing'
 import { scopeCandidates, shouldOfferModelPicker, type ScopeCandidate } from '@/lib/model-scope-selection'
 import { GetKeyLink, PLATFORMS, ALL_PLATFORMS } from './shared'
 import { ProviderLogo } from '@/components/provider-logo'
+import { OAuthProviderConnect } from './oauth-provider-connect'
 
 /** A key that just landed, plus the models the picker should offer for it.
  *  Only produced when the picker is actually worth showing (#657) — otherwise
@@ -174,9 +175,10 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
   // Key-optional providers (Kilo, OVH, AI Horde) work anonymously, but accept a
   // real key too (#1331): the field stays editable and may be left blank.
   const isKeyless = ALL_PLATFORMS.find(p => p.value === platform)?.keyless ?? false
+  const isOAuth = !!platform && ALL_PLATFORMS.find(p => p.value === platform)?.category === 'oauth'
   // Cloudflare pairs each token with an account id, and a key-optional
   // provider keeps a single anonymous row, so neither takes a list.
-  const canPasteSeveral = !isKeyless && !needsAccountId
+  const canPasteSeveral = !isKeyless && !needsAccountId && !isOAuth
   const severalMode = several && canPasteSeveral
   // One per line or comma-separated, deduped, blanks dropped.
   const keyList = severalMode
@@ -194,6 +196,7 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (isOAuth) return
     if (platformError || keyError || accountIdError) {
       setAddAttempted(true)
       return
@@ -248,77 +251,90 @@ export function AddKeyForm({ onSuccess, initialPlatform }: { onSuccess: (offer?:
             return sel?.url ? <div className="pt-0.5"><GetKeyLink url={sel.url} /></div> : null
           })()}
         </div>
-        {needsAccountId && (
-          <div className="space-y-1.5">
-            <Label className="text-xs">{t('keys.accountId')}</Label>
-            <ClayInput
-              value={accountId}
-              onChange={e => setAccountId(e.target.value)}
-              placeholder="a1b2c3d4…"
-              className="w-[200px] font-mono text-xs"
-              aria-invalid={addAttempted && !!accountIdError}
+        {isOAuth ? (
+          <div className="w-full mt-2">
+            <OAuthProviderConnect
+              platform={platform as Platform}
+              label={label}
+              onLabelChange={setLabel}
+              onSuccess={onSuccess}
             />
-            {addAttempted && <FieldError error={accountIdError} />}
           </div>
-        )}
-        <div className="space-y-1.5 flex-1 min-w-[240px]">
-          <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs">{needsAccountId ? t('keys.apiToken') : t('keys.customApiKey')}</Label>
-            {canPasteSeveral && (
-              <button
-                type="button"
-                onClick={() => setSeveral(v => !v)}
-                className={`text-[11px] underline-offset-2 hover:underline ${severalMode ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {t('keys.pasteSeveral')}
-              </button>
+        ) : (
+          <>
+            {needsAccountId && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('keys.accountId')}</Label>
+                <ClayInput
+                  value={accountId}
+                  onChange={e => setAccountId(e.target.value)}
+                  placeholder="a1b2c3d4…"
+                  className="w-[200px] font-mono text-xs"
+                  aria-invalid={addAttempted && !!accountIdError}
+                />
+                {addAttempted && <FieldError error={accountIdError} />}
+              </div>
             )}
-          </div>
-          {severalMode ? (
-            <Textarea
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder={'gsk_first…\ngsk_second…'}
-              rows={3}
-              className="font-mono text-xs"
-              aria-invalid={addAttempted && !!keyError}
-            />
-          ) : (
-            <SmoothInput
-              type="password"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder={isKeyless ? t('keys.keyOptionalPlaceholder') : (needsAccountId ? t('keys.bearerTokenPlaceholder') : t('keys.pasteKeyPlaceholder'))}
-              className="font-mono text-xs text-ink"
-              wrapperClassName="w-full bg-paper-3 border border-ink/20 rounded-lg p-2"
-              aria-invalid={addAttempted && !!keyError}
-            />
-          )}
-          {addAttempted && <FieldError error={keyError} />}
-          {isKeyless && (
-            <p className="text-[11px] text-muted-foreground">
-              {t('keys.keyOptionalHint')}
-            </p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('keys.label')}</Label>
-          <div className="flex flex-wrap items-center space-x-3">
-            <ClayInput
-              value={label}
-              onChange={e => setLabel(e.target.value)}
-              placeholder={t('keys.customDisplayNameOptional')}
-              className="w-[160px]"
-            />
-            <ClayButton type="submit" size="sm" disabled={pending}>
-              {pending
-                ? t('keys.adding')
-                : severalMode && keyList.length > 1
-                  ? t('keys.importSelected', { count: keyList.length })
-                  : isKeyless && !apiKey.trim() ? t('keys.enable') : t('keys.addKey')}
-            </ClayButton>
-          </div>
-        </div>
+            <div className="space-y-1.5 flex-1 min-w-[240px]">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs">{needsAccountId ? t('keys.apiToken') : t('keys.customApiKey')}</Label>
+                {canPasteSeveral && (
+                  <button
+                    type="button"
+                    onClick={() => setSeveral(v => !v)}
+                    className={`text-[11px] underline-offset-2 hover:underline ${severalMode ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {t('keys.pasteSeveral')}
+                  </button>
+                )}
+              </div>
+              {severalMode ? (
+                <Textarea
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                  placeholder={'gsk_first…\ngsk_second…'}
+                  rows={3}
+                  className="font-mono text-xs"
+                  aria-invalid={addAttempted && !!keyError}
+                />
+              ) : (
+                <SmoothInput
+                  type="password"
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                  placeholder={isKeyless ? t('keys.keyOptionalPlaceholder') : (needsAccountId ? t('keys.bearerTokenPlaceholder') : t('keys.pasteKeyPlaceholder'))}
+                  className="font-mono text-xs text-ink"
+                  wrapperClassName="w-full bg-paper-3 border border-ink/20 rounded-lg p-2"
+                  aria-invalid={addAttempted && !!keyError}
+                />
+              )}
+              {addAttempted && <FieldError error={keyError} />}
+              {isKeyless && (
+                <p className="text-[11px] text-muted-foreground">
+                  {t('keys.keyOptionalHint')}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">{t('keys.label')}</Label>
+              <div className="flex flex-wrap items-center space-x-3">
+                <ClayInput
+                  value={label}
+                  onChange={e => setLabel(e.target.value)}
+                  placeholder={t('keys.customDisplayNameOptional')}
+                  className="w-[160px]"
+                />
+                <ClayButton type="submit" size="sm" disabled={pending}>
+                  {pending
+                    ? t('keys.adding')
+                    : severalMode && keyList.length > 1
+                      ? t('keys.importSelected', { count: keyList.length })
+                      : isKeyless && !apiKey.trim() ? t('keys.enable') : t('keys.addKey')}
+                </ClayButton>
+              </div>
+            </div>
+          </>
+        )}
       </form>
       {(addKey.isError || addSeveral.isError) && (
         <p className="text-destructive text-xs mt-2">{((addKey.error ?? addSeveral.error) as Error).message}</p>

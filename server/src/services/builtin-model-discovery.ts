@@ -7,6 +7,7 @@ import { decrypt } from '../lib/crypto.js';
 import { decryptProxyUrl } from '../lib/key-proxy.js';
 import { withKeyProxy } from '../lib/proxy.js';
 import { discoverProviderModels, type DiscoveredModel } from './model-discovery.js';
+import { extractAccessToken } from '../lib/credential.js';
 import { appliedCatalogPlatforms, DISCOVERED_MODEL_SOURCE } from './catalog-sync.js';
 import { clearCatalogModelTombstone, isCatalogModelTombstoned } from './model-state.js';
 import { customModelSeed } from './custom-model-seed.js';
@@ -133,7 +134,8 @@ export async function discoverBuiltinModels(
   key: KeyRow,
   apiKeyOverride?: string,
 ): Promise<DiscoveredModel[]> {
-  const apiKey = apiKeyOverride?.trim() || decrypt(key.encrypted_key, key.iv, key.auth_tag);
+  const raw = apiKeyOverride?.trim() || decrypt(key.encrypted_key, key.iv, key.auth_tag);
+  const apiKey = extractAccessToken(raw);
   return withKeyProxy(decryptProxyUrl(key), () => discoverProviderModels(provider, apiKey, provider.modelsUrl.replace(/\/models\/?$/, '')));
 }
 

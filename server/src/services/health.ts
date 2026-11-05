@@ -10,6 +10,8 @@ import type { Scheduler } from '../lib/scheduler.js';
 import { sanitizeProviderErrorMessage } from '../lib/error-redaction.js';
 import { providerLog } from '../lib/server-logs.js';
 import { triggerBuiltinModelDiscovery } from './builtin-model-discovery.js';
+import { ensureValidToken } from './oauth.js';
+import { isOAuthTokenBundle } from '../lib/credential.js';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const CONSECUTIVE_FAILURES_TO_DISABLE = 3;
@@ -90,7 +92,14 @@ export async function checkKeyHealth(keyId: number): Promise<KeyStatus> {
   if (!provider) return 'error';
 
   try {
-    const apiKey = decrypt(row.encrypted_key, row.iv, row.auth_tag);
+    let apiKey = decrypt(row.encrypted_key, row.iv, row.auth_tag);
+    if (isOAuthTokenBundle(apiKey)) {
+      try {
+        apiKey = await ensureValidToken(keyId, apiKey);
+      } catch {
+        // Fall back to existing decrypted value if refresh network fails
+      }
+    }
     // #590: probe the key from the same exit its traffic uses. A key that is
     // only reachable through its own proxy (the reason to set one) would
     // otherwise be validated direct, fail, and be auto-disabled after three
